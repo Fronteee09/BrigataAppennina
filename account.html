@@ -45,7 +45,7 @@
             border: 2px solid #008c45;
             border-radius: 20px;
             padding: 40px 30px;
-            max-width: 420px;
+            max-width: 440px;
             width: 100%;
             text-align: center;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
@@ -70,7 +70,7 @@
             color: #d1d5db;
         }
 
-        input {
+        input, textarea {
             width: 100%;
             padding: 12px;
             border-radius: 8px;
@@ -81,7 +81,7 @@
             outline: none;
         }
 
-        input:focus {
+        input:focus, textarea:focus {
             border-color: #00b359;
         }
 
@@ -132,6 +132,34 @@
             border: 2px solid #008c45;
         }
 
+        .admin-badge {
+            display: inline-block;
+            background-color: #cd212a;
+            color: white;
+            font-size: 0.8em;
+            font-weight: bold;
+            padding: 4px 12px;
+            border-radius: 12px;
+            margin-top: 5px;
+            margin-bottom: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .admin-panel {
+            display: none;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px dashed #008c45;
+            text-align: left;
+        }
+
+        .admin-panel h3 {
+            color: #00b359;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
         .back-link {
             display: inline-block;
             margin-top: 20px;
@@ -174,9 +202,29 @@
         <div id="user-info">
             <h1>Profilo Recluta ★</h1>
             <img id="user-photo" class="user-avatar" src="sfondoba.png" alt="Avatar">
-            <p style="font-size: 1.2em; margin-bottom: 20px;"><strong id="user-name">Nickname</strong></p>
+            <p style="font-size: 1.2em;"><strong id="user-name">Nickname</strong></p>
             
-            <button class="btn btn-danger" id="btn-logout">Disconnetti</button>
+            <!-- Badge visibile solo se Admin -->
+            <div id="admin-badge" class="admin-badge" style="display: none;">★ COMANDANTE SUPREMO (ADMIN)</div>
+            
+            <!-- PANNELLO COMANDO ADMIN -->
+            <div id="admin-panel" class="admin-panel">
+                <h3>Pannello di Comando</h3>
+                
+                <div class="form-group">
+                    <label for="annuncio-text">Nuovo Annuncio della Brigata</label>
+                    <textarea id="annuncio-text" rows="3" placeholder="Scrivi un annuncio ufficiale..."></textarea>
+                    <button class="btn btn-primary" id="btn-pubblica-annuncio">Pubblica Annuncio</button>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="block-uid">Blocca Utente (Inserisci UID o Nickname)</label>
+                    <input type="text" id="block-uid" placeholder="UID o Nome Utente">
+                    <button class="btn btn-danger" id="btn-blocca-utente">Blocca Utente</button>
+                </div>
+            </div>
+
+            <button class="btn btn-danger" id="btn-logout" style="margin-top: 20px;">Disconnetti</button>
         </div>
 
         <a href="index.html" class="back-link">← Torna alla Home</a>
@@ -193,6 +241,14 @@
             signOut, 
             onAuthStateChanged 
         } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            setDoc, 
+            doc, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         // Configurazione Firebase
         const firebaseConfig = {
@@ -205,8 +261,11 @@
             measurementId: "G-2CNSSGXSYG"
         };
 
+        const ADMIN_UID = "IgYHEzKH62TIZXmsTeREuVB5UMe2"; // UID di Fronte ★
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app);
 
         let isLogin = true;
 
@@ -219,6 +278,11 @@
         const toggleAuth = document.getElementById('toggle-auth');
         const formTitle = document.getElementById('form-title');
 
+        const adminBadge = document.getElementById('admin-badge');
+        const adminPanel = document.getElementById('admin-panel');
+        const btnPubblicaAnnuncio = document.getElementById('btn-pubblica-annuncio');
+        const btnBloccaUtente = document.getElementById('btn-blocca-utente');
+
         // Switch tra Login e Registrazione
         toggleAuth.addEventListener('click', () => {
             isLogin = !isLogin;
@@ -227,7 +291,6 @@
             toggleAuth.textContent = isLogin ? "Non hai un account? Registrati qui." : "Hai già un account? Accedi.";
         });
 
-        // Generazione email interna valida per Firebase Auth
         function getInternalEmail(username) {
             const cleanUser = username.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
             const finalUser = cleanUser.length > 0 ? cleanUser : "user" + Date.now();
@@ -269,18 +332,64 @@
             }
         });
 
+        // Azioni Admin: Pubblica Annuncio
+        btnPubblicaAnnuncio.addEventListener('click', async () => {
+            const testo = document.getElementById('annuncio-text').value.trim();
+            if (!testo) return alert("Scrivi prima il testo dell'annuncio!");
+
+            try {
+                await addDoc(collection(db, "annunci"), {
+                    testo: testo,
+                    autore: auth.currentUser.displayName || "Fronte ★",
+                    timestamp: serverTimestamp()
+                });
+                alert("Annuncio pubblicato con successo!");
+                document.getElementById('annuncio-text').value = "";
+            } catch (error) {
+                alert("Errore nella pubblicazione: " + error.message);
+            }
+        });
+
+        // Azioni Admin: Blocca Utente
+        btnBloccaUtente.addEventListener('click', async () => {
+            const target = document.getElementById('block-uid').value.trim();
+            if (!target) return alert("Inserisci l'UID o il Nickname dell'utente da bloccare!");
+
+            try {
+                await setDoc(doc(db, "blocked_users", target), {
+                    blockedAt: serverTimestamp(),
+                    blockedBy: auth.currentUser.uid
+                });
+                alert(`Utente ${target} inserito nella lista dei bloccati!`);
+                document.getElementById('block-uid').value = "";
+            } catch (error) {
+                alert("Errore nel blocco dell'utente: " + error.message);
+            }
+        });
+
         // Logout
         btnLogout.addEventListener('click', () => signOut(auth));
 
-        // Stato Autenticazione
+        // Controllo Stato Autenticazione e Ruolo Admin
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 authContainer.style.display = 'none';
                 userInfo.style.display = 'block';
                 document.getElementById('user-name').textContent = user.displayName || usernameInput.value;
+
+                // Verifica se l'utente loggato è l'Admin tramite UID
+                if (user.uid === ADMIN_UID) {
+                    adminBadge.style.display = 'inline-block';
+                    adminPanel.style.display = 'block';
+                } else {
+                    adminBadge.style.display = 'none';
+                    adminPanel.style.display = 'none';
+                }
             } else {
                 authContainer.style.display = 'block';
                 userInfo.style.display = 'none';
+                adminBadge.style.display = 'none';
+                adminPanel.style.display = 'none';
             }
         });
     </script>
