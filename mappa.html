@@ -78,7 +78,7 @@
             z-index: 1;
         }
 
-        /* Popup Leaflet Personalizzato */
+        /* Stile personalizzato per i Popup di Leaflet */
         .leaflet-popup-content-wrapper {
             background-color: rgba(15, 35, 20, 0.95);
             color: #fff;
@@ -123,7 +123,6 @@
             border: 1px solid #ffffff;
         }
 
-        /* Sezione Mobilitazione nel Popup */
         .mobilitazione-box {
             border-top: 1px dashed #008c45;
             padding-top: 8px;
@@ -236,7 +235,7 @@
                 }).addTo(map);
             });
 
-        // 50 Postazioni Strategiche
+        // Elenco delle 50 postazioni strategiche
         const regioni = [
             { id: "scanno", nome: "Scanno (Capitale Sovrana) ★", coords: [41.9022, 13.8744], descrizione: "Sede del Governo Provvisorio della Brigata Appennina.", immagini: ["scannopaese.png", "stemmascanno.png"] },
             { id: "lazio", nome: "Lazio ★", coords: [41.9028, 12.4964], descrizione: "Presidio centrale per il controllo dei valichi appenninici.", immagini: ["laziobandiera.png"] },
@@ -290,12 +289,10 @@
             { id: "orgosolo", nome: "Orgosolo", coords: [40.2231, 9.3514], descrizione: "Cuore fiero del Supramonte sardo.", immagini: ["sfondoba.png"] }
         ];
 
-        // Traccia lo stato utente
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
         });
 
-        // Genera i Marker e imposta la logica dei Popup
         regioni.forEach(regione => {
             let immaginiHtml = '';
             regione.immagini.forEach(img => {
@@ -305,9 +302,24 @@
             const marker = L.marker(regione.coords).addTo(map);
 
             marker.on('click', () => {
-                let btnHtml = currentUser 
-                    ? `<button class="btn-mobilitati" onclick="mobilitatiIn('${regione.id}', '${regione.nome}')">🎯 Dislocati Qui</button>`
-                    : `<p style="font-size: 0.75em; color: #9ca3af; margin-top: 5px;">Accedi per mobilitarti in questo luogo.</p>`;
+                let formMobilitazione = '';
+                if (currentUser) {
+                    formMobilitazione = `
+                        <div style="margin-top: 8px; text-align: left;">
+                            <label style="font-size: 0.75em; color: #d1d5db;">Seleziona Reparto:</label>
+                            <select id="reparto-${regione.id}" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 5px;">
+                                <option value="Guardia Appennina">Guardia Appennina</option>
+                                <option value="Carabinieri Forestali">Comando Carabinieri Forestale</option>
+                                <option value="Esercito Fanteria">Esercito Fanteria</option>
+                            </select>
+                            <label style="font-size: 0.75em; color: #d1d5db;">Numero Unità:</label>
+                            <input type="number" id="num-unita-${regione.id}" value="1" min="1" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 6px;">
+                            <button class="btn-mobilitati" onclick="mobilitatiIn('${regione.id}', '${regione.nome}')">🎯 Schiera Unità</button>
+                        </div>
+                    `;
+                } else {
+                    formMobilitazione = `<p style="font-size: 0.75em; color: #9ca3af; margin-top: 5px;">Accedi per mobilitarti in questo luogo.</p>`;
+                }
 
                 const popupHtml = `
                     <div>
@@ -316,43 +328,77 @@
                         <div class="popup-images">${immaginiHtml}</div>
                         
                         <div class="mobilitazione-box">
-                            <div>Unità schierate: <span id="count-${regione.id}" class="units-badge">...</span></div>
+                            <div style="font-size: 0.9em; font-weight: bold; margin-bottom: 4px;">Totale Unità: <span id="count-total-${regione.id}" class="units-badge">0</span></div>
+                            
+                            <div style="font-size: 0.75em; text-align: left; background: rgba(0,0,0,0.4); padding: 6px; border-radius: 6px; margin-bottom: 6px;">
+                                <div>🛡️ Appennini: <strong id="count-appennini-${regione.id}">0</strong></div>
+                                <div>🌲 Carabinieri: <strong id="count-carabinieri-${regione.id}">0</strong></div>
+                                <div>🎖️ Fanteria: <strong id="count-fanteria-${regione.id}">0</strong></div>
+                            </div>
+
                             <div id="admin-list-${regione.id}"></div>
-                            ${btnHtml}
+                            ${formMobilitazione}
                         </div>
                     </div>
                 `;
 
                 marker.bindPopup(popupHtml).openPopup();
 
-                // Ascolto in tempo reale dei dati su Firestore
                 const q = query(collection(db, "mobilitazioni"), where("luogoId", "==", regione.id));
                 onSnapshot(q, (snapshot) => {
-                    const countElem = document.getElementById(`count-${regione.id}`);
-                    const adminElem = document.getElementById(`admin-list-${regione.id}`);
-                    
-                    if (countElem) countElem.textContent = snapshot.size;
+                    let totalUnita = 0;
+                    let appenniniCount = 0;
+                    let carabinieriCount = 0;
+                    let fanteriaCount = 0;
+                    let listaAdminHtml = "";
 
-                    // Se l'utente loggato è Admin, mostra i nickname dei soldati presenti
+                    snapshot.forEach(docSnap => {
+                        const data = docSnap.data();
+                        const unita = parseInt(data.unita || 1);
+                        const reparto = data.reparto || "Guardia Appennina";
+
+                        totalUnita += unita;
+
+                        if (reparto === "Guardia Appennina") appenniniCount += unita;
+                        else if (reparto === "Carabinieri Forestali") carabinieriCount += unita;
+                        else if (reparto === "Esercito Fanteria") fanteriaCount += unita;
+
+                        listaAdminHtml += `• ${data.nickname || "Anonimo"} (${reparto}: ${unita})<br>`;
+                    });
+
+                    const totalElem = document.getElementById(`count-total-${regione.id}`);
+                    const appenniniElem = document.getElementById(`count-appennini-${regione.id}`);
+                    const carabinieriElem = document.getElementById(`count-carabinieri-${regione.id}`);
+                    const fanteriaElem = document.getElementById(`count-fanteria-${regione.id}`);
+
+                    if (totalElem) totalElem.textContent = totalUnita;
+                    if (appenniniElem) appenniniElem.textContent = appenniniCount;
+                    if (carabinieriElem) carabinieriElem.textContent = carabinieriCount;
+                    if (fanteriaElem) fanteriaElem.textContent = fanteriaCount;
+
+                    const adminElem = document.getElementById(`admin-list-${regione.id}`);
                     if (adminElem && currentUser && currentUser.uid === ADMIN_UID) {
                         if (snapshot.empty) {
-                            adminElem.innerHTML = `<div class="admin-users-list">Nessun soldato schierato.</div>`;
+                            adminElem.innerHTML = `<div class="admin-users-list">Nessuna unità schierata.</div>`;
                         } else {
-                            let lista = "<strong>Soldati:</strong><br>";
-                            snapshot.forEach(docSnap => {
-                                lista += `• ${docSnap.data().nickname || "Anonimo"}<br>`;
-                            });
-                            adminElem.innerHTML = `<div class="admin-users-list">${lista}</div>`;
+                            adminElem.innerHTML = `<div class="admin-users-list"><strong>Dettaglio Comandante:</strong><br>${listaAdminHtml}</div>`;
                         }
                     }
                 });
             });
         });
 
-        // Funzione globale per la mobilitazione dell'utente nel luogo selezionato
         window.mobilitatiIn = async function(luogoId, luogoNome) {
             if (!currentUser) {
-                alert("Devi prima effettuare l'accesso per mobilitarti!");
+                alert("Devi prima effettuare l'accesso!");
+                return;
+            }
+
+            const reparto = document.getElementById(`reparto-${luogoId}`).value;
+            const unitaVal = parseInt(document.getElementById(`num-unita-${luogoId}`).value);
+
+            if (isNaN(unitaVal) || unitaVal < 1) {
+                alert("Inserisci un numero valido di unità (almeno 1)!");
                 return;
             }
 
@@ -362,11 +408,13 @@
                     nickname: currentUser.displayName || "Recluta",
                     luogoId: luogoId,
                     luogoNome: luogoNome,
+                    reparto: reparto,
+                    unita: unitaVal,
                     updatedAt: new Date()
                 });
-                alert(`Fatto! Ti sei dislocato a: ${luogoNome}`);
+                alert(`Schierate con successo ${unitaVal} unità (${reparto}) a ${luogoNome}!`);
             } catch (error) {
-                alert("Errore durante la mobilitazione: " + error.message);
+                alert("Errore durante lo schieramento: " + error.message);
             }
         };
     </script>
