@@ -106,7 +106,6 @@
             margin-bottom: 10px;
         }
 
-        /* Container per affiancare o impilare le immagini nel popup */
         .popup-images {
             display: flex;
             justify-content: center;
@@ -141,7 +140,7 @@
         // Inizializzazione della mappa centrata sull'Italia
         const map = L.map('map', {
             zoomControl: false
-        }).setView([42.2, 13.0], 7);
+        }).setView([42.5, 12.5], 6);
 
         L.control.zoom({ position: 'topright' }).addTo(map);
 
@@ -150,7 +149,7 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Dati delle regioni/borghi
+        // Elenco delle posizioni strategiche della Brigata
         const regioni = [
             {
                 nome: "Lazio ★",
@@ -163,6 +162,36 @@
                 coords: [41.9022, 13.8744],
                 descrizione: "La roccaforte appenninica ufficiale della Brigata. Governo provvisorio e quartier generale sovrano.",
                 immagini: ["scannopaese.png", "stemmascanno.png"]
+            },
+            {
+                nome: "Isera ★",
+                coords: [45.8821, 11.0267],
+                descrizione: "Avamposto settentrionale tra i vigneti trentini e le vette alpine.",
+                immagini: ["sfondoba.png"]
+            },
+            {
+                nome: "Villalago ★",
+                coords: [41.9213, 13.8825],
+                descrizione: "Roccaforte lacustre e presidio strategico appenninico.",
+                immagini: ["sfondoba.png"]
+            },
+            {
+                nome: "Milano ★",
+                coords: [45.4642, 9.1900],
+                descrizione: "Metropoli industriale e nodo logistico avanzato della Brigata.",
+                immagini: ["sfondoba.png"]
+            },
+            {
+                nome: "Gorizia ★",
+                coords: [45.9409, 13.6231],
+                descrizione: "Baluardo orientale di confine e sentinella della storia di frontiera.",
+                immagini: ["sfondoba.png"]
+            },
+            {
+                nome: "Sigonella ★",
+                coords: [37.3997, 14.9150],
+                descrizione: "Comando aeroportuale strategico nel profondo Sud.",
+                immagini: ["sfondoba.png"]
             }
         ];
 
