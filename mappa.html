@@ -96,22 +96,31 @@
             font-size: 1.2em;
             font-weight: bold;
             color: #00b359;
-            margin-bottom: 8px;
+            margin-bottom: 6px;
         }
 
         .popup-desc {
-            font-size: 0.9em;
+            font-size: 0.85em;
             line-height: 1.4;
             color: #d1d5db;
             margin-bottom: 10px;
         }
 
+        /* Container per affiancare o impilare le immagini nel popup */
+        .popup-images {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 5px;
+            flex-wrap: wrap;
+        }
+
         .popup-img {
-            width: 120px;
-            height: auto;
+            width: 100px;
+            height: 75px;
+            object-fit: cover;
             border-radius: 6px;
             border: 1px solid #ffffff;
-            margin-top: 5px;
         }
     </style>
 </head>
@@ -132,40 +141,45 @@
         // Inizializzazione della mappa centrata sull'Italia
         const map = L.map('map', {
             zoomControl: false
-        }).setView([42.5, 12.5], 6);
+        }).setView([42.2, 13.0], 7);
 
-        // Controllo dello zoom spostato in alto a destra per comodità mobile
         L.control.zoom({ position: 'topright' }).addTo(map);
 
-        // Tile layer in stile scuro/neutro per adattarsi al tema
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 18,
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Dati delle regioni (puoi aggiungere le altre con lo stesso formato!)
+        // Dati delle regioni/borghi
         const regioni = [
             {
                 nome: "Lazio ★",
                 coords: [41.9028, 12.4964],
-                descrizione: "Cuore amministrativo e pontificio della nazione. Sede dei controlli doganali e dei meme romani.",
-                bandiera: "laziobandiera.png"
+                descrizione: "Cuore amministrativo e pontificio della nazione. Sede dei controlli doganali.",
+                immagini: ["laziobandiera.png"]
             },
             {
-                nome: "Abruzzo (Capitale: Scanno)",
-                coords: [42.1918, 13.4045],
-                descrizione: "La roccaforte appenninica ufficiale della Brigata tra cinghiali tattici e laghi a forma di cuore.",
-                bandiera: "sfondoba.png" // Puoi sostituire con l'immagine dedicata quando vuoi
+                nome: "Abruzzo - Scanno (Capitale) ★",
+                coords: [41.9022, 13.8744],
+                descrizione: "La roccaforte appenninica ufficiale della Brigata. Governo provvisorio e quartier generale sovrano.",
+                immagini: ["scannopaese.png", "stemmascanno.png"]
             }
         ];
 
-        // Aggiunge i marker alla mappa con i relativi popup
+        // Aggiunge i marker alla mappa
         regioni.forEach(regione => {
+            let immaginiHtml = '';
+            regione.immagini.forEach(img => {
+                immaginiHtml += `<img src="${img}" alt="Immagine ${regione.nome}" class="popup-img">`;
+            });
+
             const popupContent = `
                 <div>
                     <div class="popup-title">${regione.nome}</div>
                     <div class="popup-desc">${regione.descrizione}</div>
-                    <img src="${regione.bandiera}" alt="Bandiera ${regione.nome}" class="popup-img">
+                    <div class="popup-images">
+                        ${immaginiHtml}
+                    </div>
                 </div>
             `;
 
