@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Account - Brigata Appennina ★</title>
+    <title>Brigata Appennina ★</title>
+    <!-- Favicon -->
     <link rel="icon" type="image/png" href="sfondoba.png">
     
     <style>
@@ -20,12 +21,13 @@
             justify-content: center;
             align-items: center;
             color: #ffffff;
-            background-color: #0b1a0e;
+            background-color: #0b1a0e; /* Verde scuro di riserva */
             position: relative;
             overflow-x: hidden;
             padding: 20px;
         }
 
+        /* Sfondo personalizzato sfocato e opacizzato */
         .bg-image {
             position: fixed;
             top: 0;
@@ -36,267 +38,119 @@
             background-size: cover;
             background-position: center;
             filter: blur(8px) opacity(0.3);
-            transform: scale(1.05);
+            transform: scale(1.05); /* Evita bordi bianchi causati dal blur */
             z-index: -1;
         }
 
+        /* Box Centrale */
         .card-container {
             background: rgba(15, 35, 20, 0.85);
             border: 2px solid #008c45;
             border-radius: 20px;
             padding: 40px 30px;
-            max-width: 420px;
+            max-width: 480px;
             width: 100%;
             text-align: center;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(5px);
         }
 
-        h1 {
-            font-size: 1.8em;
+        /* Logo */
+        .logo {
+            width: 130px;
+            height: 130px;
+            border-radius: 25px;
+            object-fit: cover;
+            border: 3px solid #ffffff;
             margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        }
+
+        h1 {
+            font-size: 2em;
             color: #ffffff;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
         }
 
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.9em;
-            color: #d1d5db;
-        }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #008c45;
-            background-color: rgba(0, 0, 0, 0.5);
-            color: #fff;
+        p.description {
             font-size: 1em;
-            outline: none;
+            color: #d1d5db;
+            line-height: 1.6;
+            margin-bottom: 30px;
         }
 
-        input:focus {
-            border-color: #00b359;
+        /* Pulsanti */
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
 
         .btn {
             display: block;
             width: 100%;
-            padding: 12px;
-            border-radius: 10px;
+            padding: 14px 20px;
+            border-radius: 12px;
             font-size: 1em;
             font-weight: bold;
+            text-decoration: none;
+            transition: all 0.2s ease-in-out;
             cursor: pointer;
-            margin-top: 10px;
-            transition: all 0.2s;
-            border: none;
         }
 
         .btn-primary {
             background-color: #008c45;
             color: #ffffff;
+            border: none;
         }
 
         .btn-primary:hover {
             background-color: #00b359;
-        }
-
-        .btn-google {
-            background-color: #4285F4;
-            color: white;
-        }
-
-        .btn-google:hover {
-            background-color: #357ae8;
-        }
-
-        .btn-danger {
-            background-color: #cd212a;
-            color: white;
+            transform: translateY(-2px);
         }
 
         .btn-secondary {
             background-color: transparent;
-            color: #d1d5db;
-            border: 1px solid #4b5563;
+            color: #ffffff;
+            border: 2px solid #cd212a;
         }
 
-        .toggle-text {
-            margin-top: 15px;
-            font-size: 0.85em;
-            color: #9ca3af;
-            cursor: pointer;
-            text-decoration: underline;
+        .btn-secondary:hover {
+            background-color: #cd212a;
+            transform: translateY(-2px);
         }
 
-        #user-info {
-            display: none;
-        }
-
-        .user-avatar {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin-bottom: 15px;
-            border: 2px solid #008c45;
-        }
-
-        .back-link {
-            display: inline-block;
-            margin-top: 20px;
-            color: #d1d5db;
-            text-decoration: none;
-            font-size: 0.9em;
-        }
-
-        .back-link:hover {
-            color: #fff;
+        /* Adattamento Mobile Extra */
+        @media (max-width: 480px) {
+            .card-container {
+                padding: 30px 20px;
+            }
+            h1 {
+                font-size: 1.6em;
+            }
         }
     </style>
 </head>
 <body>
 
+    <!-- Elemento Sfondo -->
     <div class="bg-image"></div>
 
+    <!-- Box Centrale -->
     <div class="card-container">
+        <img src="sfondoba.png" alt="Brigata Appennina Logo" class="logo">
         
-        <!-- SEZIONE AUTH (Login / Registrazione) -->
-        <div id="auth-container">
-            <h1 id="form-title">Accedi alla Brigata</h1>
-            
-            <div class="form-group">
-                <label for="email">Email Recluta</label>
-                <input type="email" id="email" placeholder="garibaldi@brigata.it">
-            </div>
+        <h1>Brigata Appennina ★</h1>
+        <p class="description">
+            La community ufficiale per la difesa del meme risorgimentale, dei borghi arroccati e della storia d'Italia. Capitale ufficiale: Scanno.
+        </p>
 
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" placeholder="••••••••">
-            </div>
-
-            <button class="btn btn-primary" id="btn-auth">Accedi</button>
-            <button class="btn btn-google" id="btn-google">🔑 Accedi con Google</button>
-
-            <p class="toggle-text" id="toggle-auth">Non hai un account? Registrati qui.</p>
+        <div class="btn-group">
+            <a href="mappa.html" class="btn btn-primary">🗺️ Visualizza la Mappa</a>
+            <a href="account.html" class="btn btn-secondary">👤 Account / Login</a>
         </div>
-
-        <!-- SEZIONE UTENTE LOGGATO -->
-        <div id="user-info">
-            <h1>Profilo Recluta ★</h1>
-            <img id="user-photo" class="user-avatar" src="sfondoba.png" alt="Avatar">
-            <p><strong id="user-name">Nome Utente</strong></p>
-            <p id="user-email" style="color: #9ca3af; font-size: 0.9em; margin-bottom: 20px;"></p>
-            
-            <button class="btn btn-danger" id="btn-logout">Disconnetti</button>
-        </div>
-
-        <a href="index.html" class="back-link">← Torna alla Home</a>
     </div>
 
-    <!-- SDK Firebase modulari (v10) via CDN -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { 
-            getAuth, 
-            signInWithEmailAndPassword, 
-            createUserWithEmailAndPassword, 
-            signInWithPopup, 
-            GoogleAuthProvider, 
-            signOut, 
-            onAuthStateChanged 
-        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
-
-        // Configurazione Firebase che hai fornito
-        const firebaseConfig = {
-            apiKey: "AIzaSyD5qGXb79oKl2hlo2NuetFuJYQGJvUKggI",
-            authDomain: "brigataappennina.firebaseapp.com",
-            projectId: "brigataappennina",
-            storageBucket: "brigataappennina.firebasestorage.app",
-            messagingSenderId: "122974690609",
-            appId: "1:122974690609:web:8ab3b6c074e7200155a410",
-            measurementId: "G-2CNSSGXSYG"
-        };
-
-        // Inizializzazione
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const provider = new GoogleAuthProvider();
-
-        let isLogin = true;
-
-        // Elementi DOM
-        const authContainer = document.getElementById('auth-container');
-        const userInfo = document.getElementById('user-info');
-        const emailInput = document.getElementById('email');
-        const passwordInput = document.getElementById('password');
-        const btnAuth = document.getElementById('btn-auth');
-        const btnGoogle = document.getElementById('btn-google');
-        const btnLogout = document.getElementById('btn-logout');
-        const toggleAuth = document.getElementById('toggle-auth');
-        const formTitle = document.getElementById('form-title');
-
-        // Switch tra Login e Registrazione
-        toggleAuth.addEventListener('click', () => {
-            isLogin = !isLogin;
-            formTitle.textContent = isLogin ? "Accedi alla Brigata" : "Registra Nuova Recluta";
-            btnAuth.textContent = isLogin ? "Accedi" : "Registrati";
-            toggleAuth.textContent = isLogin ? "Non hai un account? Registrati qui." : "Hai già un account? Accedi.";
-        });
-
-        // Gestione Login / Registrazione Email
-        btnAuth.addEventListener('click', async () => {
-            const email = emailInput.value;
-            const password = passwordInput.value;
-
-            if (!email || !password) {
-                alert("Inserisci email e password!");
-                return;
-            }
-
-            try {
-                if (isLogin) {
-                    await signInWithEmailAndPassword(auth, email, password);
-                } else {
-                    await createUserWithEmailAndPassword(auth, email, password);
-                }
-            } catch (error) {
-                alert("Errore: " + error.message);
-            }
-        });
-
-        // Login con Google
-        btnGoogle.addEventListener('click', async () => {
-            try {
-                await signInWithPopup(auth, provider);
-            } catch (error) {
-                alert("Errore Google Login: " + error.message);
-            }
-        });
-
-        // Logout
-        btnLogout.addEventListener('click', () => signOut(auth));
-
-        // Ascolta lo stato dell'autenticazione (se è loggato o no)
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                authContainer.style.display = 'none';
-                userInfo.style.display = 'block';
-                document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
-                document.getElementById('user-email').textContent = user.email;
-                if (user.photoURL) {
-                    document.getElementById('user-photo').src = user.photoURL;
-                }
-            } else {
-                authContainer.style.display = 'block';
-                userInfo.style.display = 'none';
-            }
-        });
-    </script>
 </body>
 </html>
