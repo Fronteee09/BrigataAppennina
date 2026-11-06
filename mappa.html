@@ -86,7 +86,7 @@
             border: 2px solid #008c45;
             backdrop-filter: blur(5px);
             text-align: center;
-            min-width: 240px;
+            min-width: 250px;
         }
 
         .leaflet-popup-tip {
@@ -158,6 +158,24 @@
             background-color: #e63946;
         }
 
+        .btn-rimuovi {
+            background-color: #374151;
+            color: #fca5a5;
+            border: 1px solid #cd212a;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.75em;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .btn-rimuovi:hover {
+            background-color: #4b5563;
+        }
+
         .admin-users-list {
             margin-top: 6px;
             font-size: 0.75em;
@@ -176,7 +194,7 @@
     <div class="bg-image"></div>
 
     <header>
-        <h1>🗺️ Mappa Strategica delle Regioni</h1>
+        <h1>🗺️ Mappa Strategica delle Regioni (70 Postazioni)</h1>
         <a href="index.html" class="back-btn">← Home</a>
     </header>
 
@@ -194,6 +212,7 @@
             collection, 
             doc, 
             setDoc, 
+            deleteDoc,
             onSnapshot,
             query,
             where
@@ -233,9 +252,13 @@
                 }).addTo(map);
             });
 
+        // 70 Postazioni Strategiche (50 originarie + 20 nuove)
         const regioni = [
+            // --- CAPITALE E SEDI PRINCIPALI ---
             { id: "scanno", nome: "Scanno (Capitale Sovrana) ★", coords: [41.9022, 13.8744], descrizione: "Sede del Governo Provvisorio della Brigata Appennina.", immagini: ["scannopaese.png", "stemmascanno.png"] },
             { id: "lazio", nome: "Lazio ★", coords: [41.9028, 12.4964], descrizione: "Presidio centrale per il controllo dei valichi appenninici.", immagini: ["laziobandiera.png"] },
+
+            // --- NORD E ALPI ---
             { id: "isera", nome: "Isera", coords: [45.8821, 11.0267], descrizione: "Avamposto montano alpino e riserva vitivinicola strategica.", immagini: ["sfondoba.png"] },
             { id: "milano", nome: "Milano", coords: [45.4642, 9.1900], descrizione: "Nodo logistico di comunicazione del Nord.", immagini: ["sfondoba.png"] },
             { id: "gorizia", nome: "Gorizia", coords: [45.9409, 13.6231], descrizione: "Sentinella di confine del Nord-Est.", immagini: ["sfondoba.png"] },
@@ -249,6 +272,8 @@
             { id: "arqua", nome: "Arquà Petrarca", coords: [45.2694, 11.7183], descrizione: "Presidio collinare sui Colli Euganei.", immagini: ["sfondoba.png"] },
             { id: "bobbio", nome: "Bobbio", coords: [44.7672, 9.3861], descrizione: "Ponte del Diavolo e nodo di passaggio.", immagini: ["sfondoba.png"] },
             { id: "triora", nome: "Triora", coords: [43.9933, 7.7656], descrizione: "Postazione arroccata tra le Alpi Liguri.", immagini: ["sfondoba.png"] },
+
+            // --- CENTRO E DORSALE APPENNINICA ---
             { id: "villalago", nome: "Villalago", coords: [41.9213, 13.8825], descrizione: "Presidio lacustre difensivo alle porte di Scanno.", immagini: ["sfondoba.png"] },
             { id: "civita", nome: "Civita di Bagnoregio", coords: [42.6275, 12.1136], descrizione: "Fortezza isolata nel tufo.", immagini: ["sfondoba.png"] },
             { id: "orvieto", nome: "Orvieto", coords: [42.7161, 12.1128], descrizione: "Roccaforte tufacea e baluardo umbro.", immagini: ["sfondoba.png"] },
@@ -264,6 +289,8 @@
             { id: "sanleo", nome: "San Leo", coords: [43.8967, 12.3433], descrizione: "Fortezza inespugnabile su roccia calcarea.", immagini: ["sfondoba.png"] },
             { id: "brisighella", nome: "Brisighella", coords: [44.2250, 11.7764], descrizione: "Borgo dei tre colli e torre dell'orologio.", immagini: ["sfondoba.png"] },
             { id: "gradara", nome: "Gradara", coords: [43.9483, 12.7708], descrizione: "Castello fortificato di confine.", immagini: ["sfondoba.png"] },
+
+            // --- SUD E ISOLE ---
             { id: "sigonella", nome: "Sigonella", coords: [37.3997, 14.9150], descrizione: "Comando aeroportuale strategico nel profondo Sud.", immagini: ["sfondoba.png"] },
             { id: "gaeta", nome: "Gaeta", coords: [41.2128, 13.5714], descrizione: "Piazzaforte marittima e storica roccaforte.", immagini: ["sfondoba.png"] },
             { id: "sperlonga", nome: "Sperlonga", coords: [41.2583, 13.4358], descrizione: "Torre costiera di avvistamento.", immagini: ["sfondoba.png"] },
@@ -283,7 +310,29 @@
             { id: "cefalu", nome: "Cefalù", coords: [38.0372, 14.0197], descrizione: "Duomo fortezza ai piedi della rocca.", immagini: ["sfondoba.png"] },
             { id: "castelmola", nome: "Castelmola", coords: [37.8542, 15.2792], descrizione: "Nido d'aquila sopra Taormina.", immagini: ["sfondoba.png"] },
             { id: "selinunte", nome: "Selinunte", coords: [37.5833, 12.8333], descrizione: "Avamposto archeologico tra i templi.", immagini: ["sfondoba.png"] },
-            { id: "orgosolo", nome: "Orgosolo", coords: [40.2231, 9.3514], descrizione: "Cuore fiero del Supramonte sardo.", immagini: ["sfondoba.png"] }
+            { id: "orgosolo", nome: "Orgosolo", coords: [40.2231, 9.3514], descrizione: "Cuore fiero del Supramonte sardo.", immagini: ["sfondoba.png"] },
+
+            // --- 20 NUOVE LOCALITÀ STRATEGICHE AGGIUNTIVE ---
+            { id: "susa", nome: "Susa", coords: [45.1383, 7.0461], descrizione: "Porta storica delle Alpi Cozie e nodo viario.", immagini: ["sfondoba.png"] },
+            { id: "bardonecchia", nome: "Bardonecchia", coords: [45.0789, 6.7033], descrizione: "Valico ferroviario strategico occidentale.", immagini: ["sfondoba.png"] },
+            { id: "como", nome: "Como", coords: [45.8081, 9.0852], descrizione: "Avamposto lacustre di confine settentrionale.", immagini: ["sfondoba.png"] },
+            { id: "bergamo", nome: "Bergamo Alta", coords: [45.7031, 9.6700], descrizione: "Cittadella fortificata veneta tra le mura.", immagini: ["sfondoba.png"] },
+            { id: "peschiera", nome: "Peschiera del Garda", coords: [45.4419, 10.6875], descrizione: "Fortezza del Quadrilatero sul Mincio.", immagini: ["sfondoba.png"] },
+            { id: "mantova", nome: "Mantova", coords: [45.1564, 10.7913], descrizione: "Roccaforte fluviale circondata dai laghi.", immagini: ["sfondoba.png"] },
+            { id: "chioggia", nome: "Chioggia", coords: [45.2222, 12.2789], descrizione: "Avamposto lagunare adriatico.", immagini: ["sfondoba.png"] },
+            { id: "cividale", nome: "Cividale del Friuli", coords: [46.0928, 13.4325], descrizione: "Capitale longobarda e sentinella orientale.", immagini: ["sfondoba.png"] },
+            { id: "portovenere", nome: "Portovenere", coords: [44.0519, 9.8394], descrizione: "Sperone fortificato sul Golfo dei Poeti.", immagini: ["sfondoba.png"] },
+            { id: "volterra", nome: "Volterra", coords: [43.4028, 10.8583], descrizione: "Roccaforte etrusca e medicea arroccata.", immagini: ["sfondoba.png"] },
+            { id: "piombino", nome: "Piombino", coords: [42.9292, 10.5239], descrizione: "Piazzaforte marittima di controllo sull'Arcipelago.", immagini: ["sfondoba.png"] },
+            { id: "assisi", nome: "Assisi", coords: [43.0708, 12.6197], descrizione: "Rocca Maggiore e bastione spirituale umbro.", immagini: ["sfondoba.png"] },
+            { id: "siena", nome: "Siena", coords: [43.3188, 11.3308], descrizione: "Cittadella storica e nodo collinare toscano.", immagini: ["sfondoba.png"] },
+            { id: "caprarola", nome: "Caprarola", coords: [42.3292, 12.2372], descrizione: "Palazzo Farnese, roccaforte pentagonale.", immagini: ["sfondoba.png"] },
+            { id: "agropoli", nome: "Agropoli", coords: [40.3514, 14.9961], descrizione: "Porta del Cilento e rocca fortificata sul mare.", immagini: ["sfondoba.png"] },
+            { id: "venosa", nome: "Venosa", coords: [40.9631, 15.8197], descrizione: "Castello ducale e avamposto normanno in Lucania.", immagini: ["sfondoba.png"] },
+            { id: "catania", nome: "Catania", coords: [37.5079, 15.0830], descrizione: "Castello Ursino e comando logistico etneo.", immagini: ["sfondoba.png"] },
+            { id: "siracusa", nome: "Siracusa", coords: [37.0755, 15.2866], descrizione: "Castello Maniace e piazzaforte ionica.", immagini: ["sfondoba.png"] },
+            { id: "cagliari", nome: "Cagliari", coords: [39.2238, 9.1217], descrizione: "Bastioni di Saint Remy e roccaforte sarda del Sud.", immagini: ["sfondoba.png"] },
+            { id: "alghero", nome: "Alghero", coords: [40.5581, 8.3158], descrizione: "Torri aragonesi a guardia della costa catalana.", immagini: ["sfondoba.png"] }
         ];
 
         onAuthStateChanged(auth, (user) => {
@@ -315,7 +364,8 @@
                             </select>
                             <label style="font-size: 0.75em; color: #d1d5db;">Numero Unità:</label>
                             <input type="number" id="num-unita-${regione.id}" value="1" min="1" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 6px;">
-                            <button class="btn-mobilitati" onclick="mobilitatiIn('${regione.id}', '${regione.nome}')">🎯 Schiera Unità</button>
+                            <button class="btn-mobilitati" onclick="mobilitatiIn('${regione.id}', '${regione.nome}')">🎯 Schiera / Aggiorna Unità</button>
+                            <button class="btn-rimuovi" onclick="rimuoviUnita('${regione.id}')">🗑️ Ritira le mie Unità</button>
                         </div>
                     `;
                 } else {
@@ -409,6 +459,7 @@
             });
         });
 
+        // Funzione per schierare / aggiornare unità
         window.mobilitatiIn = async function(luogoId, luogoNome) {
             if (!currentUser) {
                 alert("Devi prima effettuare l'accesso!");
@@ -436,6 +487,26 @@
                 alert(`Schierate con successo ${unitaVal} unità (${reparto}) a ${luogoNome}!`);
             } catch (error) {
                 alert("Errore durante lo schieramento: " + error.message);
+            }
+        };
+
+        // Funzione per rimuovere/ritirare le proprie unità
+        window.rimuoviUnita = async function(luogoId) {
+            if (!currentUser) {
+                alert("Devi prima effettuare l'accesso!");
+                return;
+            }
+
+            if (!confirm("Confermi di voler ritirare le tue unità da questo settore?")) {
+                return;
+            }
+
+            try {
+                await deleteDoc(doc(db, "mobilitazioni", currentUser.uid));
+                alert("Unità ritirate con successo.");
+                map.closePopup();
+            } catch (error) {
+                alert("Errore durante il ritiro delle unità: " + error.message);
             }
         };
     </script>
