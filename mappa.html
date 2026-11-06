@@ -78,7 +78,7 @@
             z-index: 1;
         }
 
-        /* Stile personalizzato per i Popup di Leaflet */
+        /* Stile personalizzato Popup Leaflet - Ottimizzato per contenere tutti i reparti */
         .leaflet-popup-content-wrapper {
             background-color: rgba(15, 35, 20, 0.95);
             color: #fff;
@@ -86,7 +86,9 @@
             border: 2px solid #008c45;
             backdrop-filter: blur(5px);
             text-align: center;
-            min-width: 250px;
+            min-width: 270px;
+            max-height: 450px;
+            overflow-y: auto;
         }
 
         .leaflet-popup-tip {
@@ -140,11 +142,25 @@
             margin-bottom: 6px;
         }
 
+        /* Layout Griglia Reparti a 2 Colonne per non occupare troppo spazio in verticale */
+        .reparti-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 8px;
+            font-size: 0.75em;
+            text-align: left;
+            background: rgba(0,0,0,0.5);
+            padding: 8px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(0, 140, 69, 0.4);
+        }
+
         .btn-mobilitati {
             background-color: #cd212a;
             color: white;
             border: none;
-            padding: 6px 12px;
+            padding: 7px 12px;
             border-radius: 6px;
             font-weight: bold;
             font-size: 0.8em;
@@ -180,12 +196,13 @@
             margin-top: 6px;
             font-size: 0.75em;
             color: #f3f4f6;
-            background: rgba(0,0,0,0.4);
-            padding: 5px;
+            background: rgba(0,0,0,0.5);
+            padding: 6px;
             border-radius: 6px;
-            max-height: 90px;
+            max-height: 120px;
             overflow-y: auto;
             text-align: left;
+            border-left: 2px solid #00b359;
         }
     </style>
 </head>
@@ -344,7 +361,6 @@
                 
                 if (currentUser) {
                     if (currentUser.uid === ADMIN_UID) {
-                        // Pannello speciale per FRONTE con rinforzi cumulativi
                         formMobilitazione = `
                             <div style="margin-top: 8px; text-align: left;">
                                 <label style="font-size: 0.75em; color: #00b359;">★ Comando Supremo (Aggiungi Rinforzi):</label>
@@ -365,7 +381,6 @@
                             </div>
                         `;
                     } else {
-                        // Pannello per UTENTI NORMALI
                         formMobilitazione = `
                             <div style="margin-top: 8px; text-align: left;">
                                 <label style="font-size: 0.75em; color: #d1d5db;">Seleziona il tuo Reparto:</label>
@@ -396,16 +411,17 @@
                         <div class="popup-images">${immaginiHtml}</div>
                         
                         <div class="mobilitazione-box">
-                            <div style="font-size: 0.9em; font-weight: bold; margin-bottom: 4px;">Totale Unità: <span id="count-total-${regione.id}" class="units-badge">0</span></div>
+                            <div style="font-size: 0.9em; font-weight: bold; margin-bottom: 6px;">Totale Unità: <span id="count-total-${regione.id}" class="units-badge">0</span></div>
                             
-                            <div style="font-size: 0.75em; text-align: left; background: rgba(0,0,0,0.4); padding: 6px; border-radius: 6px; margin-bottom: 6px;">
+                            <!-- Griglia a 2 colonne per mostrare tutti e 7 i reparti senza tagli -->
+                            <div class="reparti-grid">
                                 <div>🛡️ Appennini: <strong id="count-appennini-${regione.id}">0</strong></div>
                                 <div>🌲 Carabinieri: <strong id="count-carabinieri-${regione.id}">0</strong></div>
                                 <div>🎖️ Fanteria: <strong id="count-fanteria-${regione.id}">0</strong></div>
-                                <div>⚓ Guardia Costiera: <strong id="count-costiera-${regione.id}">0</strong></div>
-                                <div>🕵️ Intelligence: <strong id="count-intelligence-${regione.id}">0</strong></div>
+                                <div>⚓ Costiera: <strong id="count-costiera-${regione.id}">0</strong></div>
+                                <div>🕵️ Intel: <strong id="count-intelligence-${regione.id}">0</strong></div>
                                 <div>🛡️ Antisommossa: <strong id="count-antisommossa-${regione.id}">0</strong></div>
-                                <div>⚔️ Forze Speciali: <strong id="count-speciali-${regione.id}">0</strong></div>
+                                <div style="grid-column: span 2;">⚔️ Speciali: <strong id="count-speciali-${regione.id}">0</strong></div>
                             </div>
 
                             <div id="admin-list-${regione.id}"></div>
@@ -476,7 +492,6 @@
             });
         });
 
-        // Funzione standard per utenti normali (dislocazione personale)
         window.mobilitatiIn = async function(luogoId, luogoNome) {
             if (!currentUser) {
                 alert("Devi prima effettuare l'accesso!");
@@ -507,7 +522,6 @@
             }
         };
 
-        // Funzione RINFORZI CUMULATIVI per l'Admin (Fronte)
         window.aggiungiRinforziAdmin = async function(luogoId, luogoNome) {
             if (!currentUser || currentUser.uid !== ADMIN_UID) {
                 alert("Accesso non autorizzato!");
@@ -531,7 +545,6 @@
 
                 if (docSnap.exists()) {
                     const datiEsistenti = docSnap.data();
-                    // Se il reparto è lo stesso, somma le unità, altrimenti assegna il nuovo valore o aggiorna
                     const unitaPrec = parseInt(datiEsistenti.unita || 0);
                     unitaTotali = unitaPrec + rinforziVal;
                 }
@@ -552,7 +565,6 @@
             }
         };
 
-        // Funzione per ritirare/rimuovere le proprie truppe
         window.rimuoviUnita = async function(luogoId) {
             if (!currentUser) {
                 alert("Devi prima effettuare l'accesso!");
