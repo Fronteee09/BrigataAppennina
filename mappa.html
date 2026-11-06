@@ -194,7 +194,7 @@
     <div class="bg-image"></div>
 
     <header>
-        <h1>🗺️ Mappa Strategica delle Regioni (70 Postazioni)</h1>
+        <h1>🗺️ Mappa Strategica della Brigata (70 Postazioni)</h1>
         <a href="index.html" class="back-btn">← Home</a>
     </header>
 
@@ -211,6 +211,7 @@
             getFirestore, 
             collection, 
             doc, 
+            getDoc,
             setDoc, 
             deleteDoc,
             onSnapshot,
@@ -343,10 +344,10 @@
                 
                 if (currentUser) {
                     if (currentUser.uid === ADMIN_UID) {
-                        // Visibile solo a Fronte (Admin)
+                        // Pannello speciale per FRONTE con rinforzi cumulativi
                         formMobilitazione = `
                             <div style="margin-top: 8px; text-align: left;">
-                                <label style="font-size: 0.75em; color: #00b359;">★ Pannello Comando (Admin):</label>
+                                <label style="font-size: 0.75em; color: #00b359;">★ Comando Supremo (Aggiungi Rinforzi):</label>
                                 <label style="font-size: 0.75em; color: #d1d5db;">Seleziona Reparto:</label>
                                 <select id="reparto-${regione.id}" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 5px;">
                                     <option value="Guardia Appennina">Guardia Appennina</option>
@@ -357,18 +358,35 @@
                                     <option value="Antisommossa">Antisommossa</option>
                                     <option value="Forze Speciali">Forze Speciali</option>
                                 </select>
-                                <label style="font-size: 0.75em; color: #d1d5db;">Numero Unità:</label>
+                                <label style="font-size: 0.75em; color: #d1d5db;">Unità da aggiungere:</label>
                                 <input type="number" id="num-unita-${regione.id}" value="1" min="1" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 6px;">
-                                <button class="btn-mobilitati" onclick="mobilitatiIn('${regione.id}', '${regione.nome}')">🎯 Schiera / Aggiorna Unità</button>
-                                <button class="btn-rimuovi" onclick="rimuoviUnita('${regione.id}')">🗑️ Ritira Unità</button>
+                                <button class="btn-mobilitati" onclick="aggiungiRinforziAdmin('${regione.id}', '${regione.nome}')">➕ Invia Rinforzi (+ Unità)</button>
+                                <button class="btn-rimuovi" onclick="rimuoviUnita('${regione.id}')">🗑️ Ritira le mie truppe</button>
                             </div>
                         `;
                     } else {
-                        // Per gli utenti normali (non Admin)
-                        formMobilitazione = `<p style="font-size: 0.75em; color: #9ca3af; margin-top: 5px;">Solo il Comando Supremo (Fronte) può dislocare truppe in questo settore.</p>`;
+                        // Pannello per UTENTI NORMALI
+                        formMobilitazione = `
+                            <div style="margin-top: 8px; text-align: left;">
+                                <label style="font-size: 0.75em; color: #d1d5db;">Seleziona il tuo Reparto:</label>
+                                <select id="reparto-${regione.id}" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 5px;">
+                                    <option value="Guardia Appennina">Guardia Appennina</option>
+                                    <option value="Carabinieri Forestali">Comando Carabinieri Forestali</option>
+                                    <option value="Esercito Fanteria">Esercito Fanteria</option>
+                                    <option value="Guardia Costiera">Guardia Costiera</option>
+                                    <option value="Intelligence">Intelligence</option>
+                                    <option value="Antisommossa">Antisommossa</option>
+                                    <option value="Forze Speciali">Forze Speciali</option>
+                                </select>
+                                <label style="font-size: 0.75em; color: #d1d5db;">Numero Unità Personali:</label>
+                                <input type="number" id="num-unita-${regione.id}" value="1" min="1" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 6px;">
+                                <button class="btn-mobilitati" onclick="mobilitatiIn('${regione.id}', '${regione.nome}')">🎯 Dislocati Qui</button>
+                                <button class="btn-rimuovi" onclick="rimuoviUnita('${regione.id}')">🗑️ Ritira le mie truppe</button>
+                            </div>
+                        `;
                     }
                 } else {
-                    formMobilitazione = `<p style="font-size: 0.75em; color: #9ca3af; margin-top: 5px;">Accedi per visualizzare i dettagli strategici.</p>`;
+                    formMobilitazione = `<p style="font-size: 0.75em; color: #9ca3af; margin-top: 5px;">Accedi per dislocare unità in questo settore.</p>`;
                 }
 
                 const popupHtml = `
@@ -458,10 +476,10 @@
             });
         });
 
-        // Funzione per schierare / aggiornare unità (Solo Admin)
+        // Funzione standard per utenti normali (dislocazione personale)
         window.mobilitatiIn = async function(luogoId, luogoNome) {
-            if (!currentUser || currentUser.uid !== ADMIN_UID) {
-                alert("Accesso non autorizzato!");
+            if (!currentUser) {
+                alert("Devi prima effettuare l'accesso!");
                 return;
             }
 
@@ -474,38 +492,83 @@
             }
 
             try {
-                await setDoc(doc(db, "mobilitazioni", currentUser.uid), {
+                await setDoc(doc(db, "mobilitazioni", currentUser.uid + "_" + luogoId), {
                     userId: currentUser.uid,
-                    nickname: currentUser.displayName || "Fronte ★",
+                    nickname: currentUser.displayName || "Recluta",
                     luogoId: luogoId,
                     luogoNome: luogoNome,
                     reparto: reparto,
                     unita: unitaVal,
                     updatedAt: new Date()
                 });
-                alert(`Schierate con successo ${unitaVal} unità (${reparto}) a ${luogoNome}!`);
+                alert(`Dislocati con successo ${unitaVal} unità (${reparto}) a ${luogoNome}!`);
             } catch (error) {
-                alert("Errore durante lo schieramento: " + error.message);
+                alert("Errore durante la mobilitazione: " + error.message);
             }
         };
 
-        // Funzione per rimuovere/ritirare le unità (Solo Admin)
-        window.rimuoviUnita = async function(luogoId) {
+        // Funzione RINFORZI CUMULATIVI per l'Admin (Fronte)
+        window.aggiungiRinforziAdmin = async function(luogoId, luogoNome) {
             if (!currentUser || currentUser.uid !== ADMIN_UID) {
                 alert("Accesso non autorizzato!");
                 return;
             }
 
-            if (!confirm("Confermi di voler ritirare le unità da questo settore?")) {
+            const reparto = document.getElementById(`reparto-${luogoId}`).value;
+            const rinforziVal = parseInt(document.getElementById(`num-unita-${luogoId}`).value);
+
+            if (isNaN(rinforziVal) || rinforziVal < 1) {
+                alert("Inserisci un numero valido di rinforzi!");
+                return;
+            }
+
+            const docId = currentUser.uid + "_" + luogoId;
+            const docRef = doc(db, "mobilitazioni", docId);
+
+            try {
+                const docSnap = await getDoc(docRef);
+                let unitaTotali = rinforziVal;
+
+                if (docSnap.exists()) {
+                    const datiEsistenti = docSnap.data();
+                    // Se il reparto è lo stesso, somma le unità, altrimenti assegna il nuovo valore o aggiorna
+                    const unitaPrec = parseInt(datiEsistenti.unita || 0);
+                    unitaTotali = unitaPrec + rinforziVal;
+                }
+
+                await setDoc(docRef, {
+                    userId: currentUser.uid,
+                    nickname: currentUser.displayName || "Fronte ★",
+                    luogoId: luogoId,
+                    luogoNome: luogoNome,
+                    reparto: reparto,
+                    unita: unitaTotali,
+                    updatedAt: new Date()
+                });
+
+                alert(`Aggiunti ${rinforziVal} rinforzi (${reparto}) a ${luogoNome}! Totale truppe Fronte qui: ${unitaTotali}`);
+            } catch (error) {
+                alert("Errore nell'invio dei rinforzi: " + error.message);
+            }
+        };
+
+        // Funzione per ritirare/rimuovere le proprie truppe
+        window.rimuoviUnita = async function(luogoId) {
+            if (!currentUser) {
+                alert("Devi prima effettuare l'accesso!");
+                return;
+            }
+
+            if (!confirm("Confermi di voler ritirare le tue truppe da questo settore?")) {
                 return;
             }
 
             try {
-                await deleteDoc(doc(db, "mobilitazioni", currentUser.uid));
-                alert("Unità ritirate con successo.");
+                await deleteDoc(doc(db, "mobilitazioni", currentUser.uid + "_" + luogoId));
+                alert("Truppe ritirate con successo.");
                 map.closePopup();
             } catch (error) {
-                alert("Errore durante il ritiro delle unità: " + error.message);
+                alert("Errore durante il ritiro delle truppe: " + error.message);
             }
         };
     </script>
