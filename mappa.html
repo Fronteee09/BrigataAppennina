@@ -86,7 +86,7 @@
             border: 2px solid #008c45;
             backdrop-filter: blur(5px);
             text-align: center;
-            min-width: 220px;
+            min-width: 240px;
         }
 
         .leaflet-popup-tip {
@@ -165,7 +165,7 @@
             background: rgba(0,0,0,0.4);
             padding: 5px;
             border-radius: 6px;
-            max-height: 80px;
+            max-height: 90px;
             overflow-y: auto;
             text-align: left;
         }
@@ -217,7 +217,6 @@
 
         let currentUser = null;
 
-        // Inizializzazione Mappa Leaflet
         const map = L.map('map', { zoomControl: false }).setView([42.5, 12.5], 6);
         L.control.zoom({ position: 'topright' }).addTo(map);
 
@@ -226,7 +225,6 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Overlay confini Italia
         fetch('https://raw.githubusercontent.com/openpolis/geojson-italy/master/geojson/limits_IT_national.geojson')
             .then(res => res.json())
             .then(data => {
@@ -235,7 +233,6 @@
                 }).addTo(map);
             });
 
-        // Elenco delle 50 postazioni strategiche
         const regioni = [
             { id: "scanno", nome: "Scanno (Capitale Sovrana) ★", coords: [41.9022, 13.8744], descrizione: "Sede del Governo Provvisorio della Brigata Appennina.", immagini: ["scannopaese.png", "stemmascanno.png"] },
             { id: "lazio", nome: "Lazio ★", coords: [41.9028, 12.4964], descrizione: "Presidio centrale per il controllo dei valichi appenninici.", immagini: ["laziobandiera.png"] },
@@ -309,8 +306,12 @@
                             <label style="font-size: 0.75em; color: #d1d5db;">Seleziona Reparto:</label>
                             <select id="reparto-${regione.id}" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 5px;">
                                 <option value="Guardia Appennina">Guardia Appennina</option>
-                                <option value="Carabinieri Forestali">Comando Carabinieri Forestale</option>
+                                <option value="Carabinieri Forestali">Comando Carabinieri Forestali</option>
                                 <option value="Esercito Fanteria">Esercito Fanteria</option>
+                                <option value="Guardia Costiera">Guardia Costiera</option>
+                                <option value="Intelligence">Intelligence</option>
+                                <option value="Antisommossa">Antisommossa</option>
+                                <option value="Forze Speciali">Forze Speciali</option>
                             </select>
                             <label style="font-size: 0.75em; color: #d1d5db;">Numero Unità:</label>
                             <input type="number" id="num-unita-${regione.id}" value="1" min="1" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 6px;">
@@ -334,6 +335,10 @@
                                 <div>🛡️ Appennini: <strong id="count-appennini-${regione.id}">0</strong></div>
                                 <div>🌲 Carabinieri: <strong id="count-carabinieri-${regione.id}">0</strong></div>
                                 <div>🎖️ Fanteria: <strong id="count-fanteria-${regione.id}">0</strong></div>
+                                <div>⚓ Guardia Costiera: <strong id="count-costiera-${regione.id}">0</strong></div>
+                                <div>🕵️ Intelligence: <strong id="count-intelligence-${regione.id}">0</strong></div>
+                                <div>🛡️ Antisommossa: <strong id="count-antisommossa-${regione.id}">0</strong></div>
+                                <div>⚔️ Forze Speciali: <strong id="count-speciali-${regione.id}">0</strong></div>
                             </div>
 
                             <div id="admin-list-${regione.id}"></div>
@@ -350,6 +355,10 @@
                     let appenniniCount = 0;
                     let carabinieriCount = 0;
                     let fanteriaCount = 0;
+                    let costieraCount = 0;
+                    let intelligenceCount = 0;
+                    let antisommossaCount = 0;
+                    let specialiCount = 0;
                     let listaAdminHtml = "";
 
                     snapshot.forEach(docSnap => {
@@ -362,6 +371,10 @@
                         if (reparto === "Guardia Appennina") appenniniCount += unita;
                         else if (reparto === "Carabinieri Forestali") carabinieriCount += unita;
                         else if (reparto === "Esercito Fanteria") fanteriaCount += unita;
+                        else if (reparto === "Guardia Costiera") costieraCount += unita;
+                        else if (reparto === "Intelligence") intelligenceCount += unita;
+                        else if (reparto === "Antisommossa") antisommossaCount += unita;
+                        else if (reparto === "Forze Speciali") specialiCount += unita;
 
                         listaAdminHtml += `• ${data.nickname || "Anonimo"} (${reparto}: ${unita})<br>`;
                     });
@@ -370,11 +383,19 @@
                     const appenniniElem = document.getElementById(`count-appennini-${regione.id}`);
                     const carabinieriElem = document.getElementById(`count-carabinieri-${regione.id}`);
                     const fanteriaElem = document.getElementById(`count-fanteria-${regione.id}`);
+                    const costieraElem = document.getElementById(`count-costiera-${regione.id}`);
+                    const intelligenceElem = document.getElementById(`count-intelligence-${regione.id}`);
+                    const antisommossaElem = document.getElementById(`count-antisommossa-${regione.id}`);
+                    const specialiElem = document.getElementById(`count-speciali-${regione.id}`);
 
                     if (totalElem) totalElem.textContent = totalUnita;
                     if (appenniniElem) appenniniElem.textContent = appenniniCount;
                     if (carabinieriElem) carabinieriElem.textContent = carabinieriCount;
                     if (fanteriaElem) fanteriaElem.textContent = fanteriaCount;
+                    if (costieraElem) costieraElem.textContent = costieraCount;
+                    if (intelligenceElem) intelligenceElem.textContent = intelligenceCount;
+                    if (antisommossaElem) antisommossaElem.textContent = antisommossaCount;
+                    if (specialiElem) specialiElem.textContent = specialiCount;
 
                     const adminElem = document.getElementById(`admin-list-${regione.id}`);
                     if (adminElem && currentUser && currentUser.uid === ADMIN_UID) {
