@@ -21,7 +21,7 @@
             justify-content: center;
             align-items: center;
             color: #ffffff;
-            background-color: #0b1a0e; /* Verde scuro di riserva */
+            background-color: #0b1a0e;
             position: relative;
             overflow-x: hidden;
             padding: 20px;
@@ -38,7 +38,7 @@
             background-size: cover;
             background-position: center;
             filter: blur(8px) opacity(0.3);
-            transform: scale(1.05); /* Evita bordi bianchi causati dal blur */
+            transform: scale(1.05);
             z-index: -1;
         }
 
@@ -121,7 +121,17 @@
             transform: translateY(-2px);
         }
 
-        /* Adattamento Mobile Extra */
+        .btn-accent {
+            background-color: #1f2937;
+            color: #ffffff;
+            border: 2px solid #008c45;
+        }
+
+        .btn-accent:hover {
+            background-color: #374151;
+            transform: translateY(-2px);
+        }
+
         @media (max-width: 480px) {
             .card-container {
                 padding: 30px 20px;
@@ -134,20 +144,20 @@
 </head>
 <body>
 
-    <!-- Elemento Sfondo -->
     <div class="bg-image"></div>
 
-    <!-- Box Centrale -->
     <div class="card-container">
         <img src="sfondoba.png" alt="Brigata Appennina Logo" class="logo">
         
         <h1>Brigata Appennina ★</h1>
         <p class="description">
-            La community ufficiale per la difesa del meme risorgimentale, dei borghi arroccati e della storia d'Italia. Capitale ufficiale: Scanno.
+            La community ufficiale per la difesa del meme risorgimentale, dei borghi arroccati e della storia d'Italia. Capitale ufficiale: Scanno.<br><br>
+            <b>Benvenute, reclute!</b>
         </p>
 
         <div class="btn-group">
             <a href="mappa.html" class="btn btn-primary">🗺️ Visualizza la Mappa</a>
+            <a href="annunci.html" class="btn btn-accent">📢 Visualizza Annunci</a>
             <a href="account.html" class="btn btn-secondary">👤 Account / Login</a>
         </div>
     </div>
