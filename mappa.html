@@ -78,7 +78,7 @@
             z-index: 1;
         }
 
-        /* Stile personalizzato per i Popup di Leaflet */
+        /* Popup Leaflet Personalizzato */
         .leaflet-popup-content-wrapper {
             background-color: rgba(15, 35, 20, 0.95);
             color: #fff;
@@ -86,6 +86,7 @@
             border: 2px solid #008c45;
             backdrop-filter: blur(5px);
             text-align: center;
+            min-width: 220px;
         }
 
         .leaflet-popup-tip {
@@ -103,23 +104,71 @@
             font-size: 0.85em;
             line-height: 1.4;
             color: #d1d5db;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .popup-images {
             display: flex;
             justify-content: center;
-            gap: 8px;
-            margin-top: 5px;
+            gap: 6px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
         }
 
         .popup-img {
-            width: 90px;
-            height: 65px;
+            width: 85px;
+            height: 60px;
             object-fit: cover;
             border-radius: 6px;
             border: 1px solid #ffffff;
+        }
+
+        /* Sezione Mobilitazione nel Popup */
+        .mobilitazione-box {
+            border-top: 1px dashed #008c45;
+            padding-top: 8px;
+            margin-top: 8px;
+            font-size: 0.85em;
+        }
+
+        .units-badge {
+            display: inline-block;
+            background-color: #008c45;
+            color: white;
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+        }
+
+        .btn-mobilitati {
+            background-color: #cd212a;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 0.8em;
+            cursor: pointer;
+            transition: background 0.2s;
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .btn-mobilitati:hover {
+            background-color: #e63946;
+        }
+
+        .admin-users-list {
+            margin-top: 6px;
+            font-size: 0.75em;
+            color: #f3f4f6;
+            background: rgba(0,0,0,0.4);
+            padding: 5px;
+            border-radius: 6px;
+            max-height: 80px;
+            overflow-y: auto;
+            text-align: left;
         }
     </style>
 </head>
@@ -136,11 +185,41 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const map = L.map('map', {
-            zoomControl: false
-        }).setView([42.5, 12.5], 6);
+    
+    <!-- Firebase SDK v10 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            doc, 
+            setDoc, 
+            onSnapshot,
+            query,
+            where
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5qGXb79oKl2hlo2NuetFuJYQGJvUKggI",
+            authDomain: "brigataappennina.firebaseapp.com",
+            projectId: "brigataappennina",
+            storageBucket: "brigataappennina.firebasestorage.app",
+            messagingSenderId: "122974690609",
+            appId: "1:122974690609:web:8ab3b6c074e7200155a410",
+            measurementId: "G-2CNSSGXSYG"
+        };
+
+        const ADMIN_UID = "IgYHEzKH62TIZXmsTeREuVB5UMe2";
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUser = null;
+
+        // Inizializzazione Mappa Leaflet
+        const map = L.map('map', { zoomControl: false }).setView([42.5, 12.5], 6);
         L.control.zoom({ position: 'topright' }).addTo(map);
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -148,101 +227,148 @@
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Caricamento e colorazione dei confini dell'Italia
+        // Overlay confini Italia
         fetch('https://raw.githubusercontent.com/openpolis/geojson-italy/master/geojson/limits_IT_national.geojson')
             .then(res => res.json())
             .then(data => {
                 L.geoJSON(data, {
-                    style: {
-                        fillColor: '#008c45',
-                        fillOpacity: 0.35,
-                        color: '#00b359',
-                        weight: 2
-                    }
+                    style: { fillColor: '#008c45', fillOpacity: 0.35, color: '#00b359', weight: 2 }
                 }).addTo(map);
             });
 
-        // 50 Postazioni Strategiche della Brigata Appennina
+        // 50 Postazioni Strategiche
         const regioni = [
-            // --- CAPITALE E SEDI PRINCIPALI ---
-            { nome: "Scanno (Capitale Sovrana) ★", coords: [41.9022, 13.8744], descrizione: "Sede del Governo Provvisorio della Brigata Appennina.", immagini: ["scannopaese.png", "stemmascanno.png"] },
-            { nome: "Lazio ★", coords: [41.9028, 12.4964], descrizione: "Presidio centrale per il controllo dei valichi appenninici vicini alla capitale.", immagini: ["laziobandiera.png"] },
-
-            // --- NORD E ALPI ---
-            { nome: "Isera", coords: [45.8821, 11.0267], descrizione: "Avamposto montano alpino e riserva vitivinicola strategica.", immagini: ["sfondoba.png"] },
-            { nome: "Milano", coords: [45.4642, 9.1900], descrizione: "Nodo logistico di comunicazione del Nord.", immagini: ["sfondoba.png"] },
-            { nome: "Gorizia", coords: [45.9409, 13.6231], descrizione: "Sentinella di confine del Nord-Est.", immagini: ["sfondoba.png"] },
-            { nome: "Fenestrelle", coords: [45.0344, 7.0494], descrizione: "Fortezza alpina e bastione inespugnabile delle Alpi Occidentali.", immagini: ["sfondoba.png"] },
-            { nome: "Courmayeur", coords: [45.7969, 6.9672], descrizione: "Osservatorio alpino sul Monte Bianco.", immagini: ["sfondoba.png"] },
-            { nome: "Livigno", coords: [46.5386, 10.1358], descrizione: "Presidio delle nevi e zona franca per i rifornimenti.", immagini: ["sfondoba.png"] },
-            { nome: "Passo dello Stelvio", coords: [46.5286, 10.4531], descrizione: "Valico d'alta quota per il controllo dei passi montani.", immagini: ["sfondoba.png"] },
-            { nome: "Chiusa / Klausen", coords: [46.6403, 11.5667], descrizione: "Fortificazione di passaggio in Valle Isarco.", immagini: ["sfondoba.png"] },
-            { nome: "Venzone", coords: [46.3314, 13.1367], descrizione: "Borgo fortificato a guardia dei passi friulani.", immagini: ["sfondoba.png"] },
-            { nome: "Bassano del Grappa", coords: [45.7667, 11.7333], descrizione: "Ponte strategico e roccaforte della tradizione degli Alpini.", immagini: ["sfondoba.png"] },
-            { nome: "Arquà Petrarca", coords: [45.2694, 11.7183], descrizione: "Presidio collinare sui Colli Euganei.", immagini: ["sfondoba.png"] },
-            { nome: "Bobbio", coords: [44.7672, 9.3861], descrizione: "Ponte del Diavolo e nodo di passaggio tra Lombardia e Liguria.", immagini: ["sfondoba.png"] },
-            { nome: "Triora", coords: [43.9933, 7.7656], descrizione: "Postazione arroccata tra le Alpi Liguri.", immagini: ["sfondoba.png"] },
-
-            // --- CENTRO E DORSALE APPENNINICA ---
-            { nome: "Villalago", coords: [41.9213, 13.8825], descrizione: "Presidio lacustre difensivo alle porte di Scanno.", immagini: ["sfondoba.png"] },
-            { nome: "Civita di Bagnoregio", coords: [42.6275, 12.1136], descrizione: "La città che muore e rinasce, fortezza isolata nel tufo.", immagini: ["sfondoba.png"] },
-            { nome: "Orvieto", coords: [42.7161, 12.1128], descrizione: "Roccaforte tufacea e baluardo umbro.", immagini: ["sfondoba.png"] },
-            { nome: "Spello", coords: [42.9925, 12.6708], descrizione: "Torrioni romani e fioriture tattiche della Valle Umbra.", immagini: ["sfondoba.png"] },
-            { nome: "Norcia", coords: [42.7936, 13.0931], descrizione: "Avamposto montano dei monti Sibillini e rifornimento viveri.", immagini: ["sfondoba.png"] },
-            { nome: "Castelluccio di Norcia", coords: [42.8258, 13.2089], descrizione: "Pianoro d'alta quota e osservatorio strategico.", immagini: ["sfondoba.png"] },
-            { nome: "Amatrice", coords: [42.6289, 13.2903], descrizione: "Guardiano dei monti della Laga.", immagini: ["sfondoba.png"] },
-            { nome: "Rocca Calascio", coords: [42.3325, 13.5433], descrizione: "Il castello d'alta quota più alto d'Appennino.", immagini: ["sfondoba.png"] },
-            { nome: "Santo Stefano di Sessanio", coords: [42.3431, 13.6194], descrizione: "Borgo fortificato in pietra della Baronia.", immagini: ["sfondoba.png"] },
-            { nome: "Sulmona", coords: [42.0469, 13.9261], descrizione: "Avamposto peligno e snodo della valle.", immagini: ["sfondoba.png"] },
-            { nome: "Pescasseroli", coords: [41.8089, 13.7842], descrizione: "Quartier generale nel Parco Nazionale d'Abruzzo.", immagini: ["sfondoba.png"] },
-            { nome: "Guardiagrele", coords: [42.1908, 14.2208], descrizione: "Terrazza d'Abruzzo a guardia della Maiella.", immagini: ["sfondoba.png"] },
-            { nome: "San Leo", coords: [43.8967, 12.3433], descrizione: "Fortezza inespugnabile su roccia calcarea.", immagini: ["sfondoba.png"] },
-            { nome: "Brisighella", coords: [44.2250, 11.7764], descrizione: "Borgo dei tre colli e torre dell'orologio.", immagini: ["sfondoba.png"] },
-            { nome: "Gradara", coords: [43.9483, 12.7708], descrizione: "Castello fortificato di confine tra Romagna e Marche.", immagini: ["sfondoba.png"] },
-
-            // --- SUD E ISOLE ---
-            { nome: "Sigonella", coords: [37.3997, 14.9150], descrizione: "Comando aeroportuale strategico nel profondo Sud.", immagini: ["sfondoba.png"] },
-            { nome: "Gaeta", coords: [41.2128, 13.5714], descrizione: "Piazzaforte marittima e storica ultima roccaforte del Regno.", immagini: ["sfondoba.png"] },
-            { nome: "Sperlonga", coords: [41.2583, 13.4358], descrizione: "Torre costiera di avvistamento saraceno.", immagini: ["sfondoba.png"] },
-            { nome: "Alberobello", coords: [40.7833, 17.2333], descrizione: "Accampamento mimetico di trulli conici della Murgia.", immagini: ["sfondoba.png"] },
-            { nome: "Castel del Monte", coords: [41.0847, 16.2708], descrizione: "Misteriosa fortezza ottagonale federiciana.", immagini: ["sfondoba.png"] },
-            { nome: "Trani", coords: [41.2783, 16.4150], descrizione: "Cattedrale sul mare e baluardo adriatico.", immagini: ["sfondoba.png"] },
-            { nome: "Matera", coords: [40.6667, 16.6000], descrizione: "La città dei Sassi, rifugio roccioso impenetrabile.", immagini: ["sfondoba.png"] },
-            { nome: "Peschici", coords: [41.9442, 16.0125], descrizione: "Avamposto garganico a picco sul mare.", immagini: ["sfondoba.png"] },
-            { nome: "Amalfi", coords: [40.6333, 14.6028], descrizione: "Potenza marinara della costa verticale.", immagini: ["sfondoba.png"] },
-            { nome: "Atrani", coords: [40.6378, 14.6111], descrizione: "Rifugio segreto della costiera.", immagini: ["sfondoba.png"] },
-            { nome: "Castellabate", coords: [40.2792, 14.9658], descrizione: "Castello dell'Abate a controllo del Cilento.", immagini: ["sfondoba.png"] },
-            { nome: "Maratea", coords: [39.9986, 15.7119], descrizione: "Cristo Redentore e sentinella tirrenica della Lucania.", immagini: ["sfondoba.png"] },
-            { nome: "Tropea", coords: [38.6792, 15.8994], descrizione: "Santuario sullo scoglio e controllo della costa degli Dei.", immagini: ["sfondoba.png"] },
-            { nome: "Gerace", coords: [38.2708, 16.2208], descrizione: "Città rupestre e normanna dell'Aspromonte.", immagini: ["sfondoba.png"] },
-            { nome: "Pentedattilo", coords: [37.9556, 15.7725], descrizione: "Il borgo fantasma a forma di mano ciclopica.", immagini: ["sfondoba.png"] },
-            { nome: "Erice", coords: [38.0389, 12.5858], descrizione: "Roccaforte di Venere sospesa sui venti di Sicilia.", immagini: ["sfondoba.png"] },
-            { nome: "Cefalù", coords: [38.0372, 14.0197], descrizione: "Duomo fortezza ai piedi della grande rocca.", immagini: ["sfondoba.png"] },
-            { nome: "Castelmola", coords: [37.8542, 15.2792], descrizione: "Nido d'aquila sopra Taormina.", immagini: ["sfondoba.png"] },
-            { nome: "Selinunte", coords: [37.5833, 12.8333], descrizione: "Avamposto archeologico tra i templi del Mediterraneo.", immagini: ["sfondoba.png"] },
-            { nome: "Orgosolo", coords: [40.2231, 9.3514], descrizione: "Cuore fiero e ribelle del Supramonte sardo.", immagini: ["sfondoba.png"] }
+            { id: "scanno", nome: "Scanno (Capitale Sovrana) ★", coords: [41.9022, 13.8744], descrizione: "Sede del Governo Provvisorio della Brigata Appennina.", immagini: ["scannopaese.png", "stemmascanno.png"] },
+            { id: "lazio", nome: "Lazio ★", coords: [41.9028, 12.4964], descrizione: "Presidio centrale per il controllo dei valichi appenninici.", immagini: ["laziobandiera.png"] },
+            { id: "isera", nome: "Isera", coords: [45.8821, 11.0267], descrizione: "Avamposto montano alpino e riserva vitivinicola strategica.", immagini: ["sfondoba.png"] },
+            { id: "milano", nome: "Milano", coords: [45.4642, 9.1900], descrizione: "Nodo logistico di comunicazione del Nord.", immagini: ["sfondoba.png"] },
+            { id: "gorizia", nome: "Gorizia", coords: [45.9409, 13.6231], descrizione: "Sentinella di confine del Nord-Est.", immagini: ["sfondoba.png"] },
+            { id: "fenestrelle", nome: "Fenestrelle", coords: [45.0344, 7.0494], descrizione: "Fortezza alpina e bastione inespugnabile.", immagini: ["sfondoba.png"] },
+            { id: "courmayeur", nome: "Courmayeur", coords: [45.7969, 6.9672], descrizione: "Osservatorio alpino sul Monte Bianco.", immagini: ["sfondoba.png"] },
+            { id: "livigno", nome: "Livigno", coords: [46.5386, 10.1358], descrizione: "Presidio delle nevi e zona franca.", immagini: ["sfondoba.png"] },
+            { id: "stelvio", nome: "Passo dello Stelvio", coords: [46.5286, 10.4531], descrizione: "Valico d'alta quota per il controllo dei passi.", immagini: ["sfondoba.png"] },
+            { id: "chiusa", nome: "Chiusa / Klausen", coords: [46.6403, 11.5667], descrizione: "Fortificazione di passaggio in Valle Isarco.", immagini: ["sfondoba.png"] },
+            { id: "venzone", nome: "Venzone", coords: [46.3314, 13.1367], descrizione: "Borgo fortificato a guardia dei passi friulani.", immagini: ["sfondoba.png"] },
+            { id: "bassano", nome: "Bassano del Grappa", coords: [45.7667, 11.7333], descrizione: "Ponte strategico e roccaforte degli Alpini.", immagini: ["sfondoba.png"] },
+            { id: "arqua", nome: "Arquà Petrarca", coords: [45.2694, 11.7183], descrizione: "Presidio collinare sui Colli Euganei.", immagini: ["sfondoba.png"] },
+            { id: "bobbio", nome: "Bobbio", coords: [44.7672, 9.3861], descrizione: "Ponte del Diavolo e nodo di passaggio.", immagini: ["sfondoba.png"] },
+            { id: "triora", nome: "Triora", coords: [43.9933, 7.7656], descrizione: "Postazione arroccata tra le Alpi Liguri.", immagini: ["sfondoba.png"] },
+            { id: "villalago", nome: "Villalago", coords: [41.9213, 13.8825], descrizione: "Presidio lacustre difensivo alle porte di Scanno.", immagini: ["sfondoba.png"] },
+            { id: "civita", nome: "Civita di Bagnoregio", coords: [42.6275, 12.1136], descrizione: "Fortezza isolata nel tufo.", immagini: ["sfondoba.png"] },
+            { id: "orvieto", nome: "Orvieto", coords: [42.7161, 12.1128], descrizione: "Roccaforte tufacea e baluardo umbro.", immagini: ["sfondoba.png"] },
+            { id: "spello", nome: "Spello", coords: [42.9925, 12.6708], descrizione: "Torrioni romani e fioriture tattiche.", immagini: ["sfondoba.png"] },
+            { id: "norcia", nome: "Norcia", coords: [42.7936, 13.0931], descrizione: "Avamposto montano dei monti Sibillini.", immagini: ["sfondoba.png"] },
+            { id: "castelluccio", nome: "Castelluccio di Norcia", coords: [42.8258, 13.2089], descrizione: "Pianoro d'alta quota e osservatorio.", immagini: ["sfondoba.png"] },
+            { id: "amatrice", nome: "Amatrice", coords: [42.6289, 13.2903], descrizione: "Guardiano dei monti della Laga.", immagini: ["sfondoba.png"] },
+            { id: "calascio", nome: "Rocca Calascio", coords: [42.3325, 13.5433], descrizione: "Il castello d'alta quota più alto d'Appennino.", immagini: ["sfondoba.png"] },
+            { id: "sessanio", nome: "Santo Stefano di Sessanio", coords: [42.3431, 13.6194], descrizione: "Borgo fortificato in pietra della Baronia.", immagini: ["sfondoba.png"] },
+            { id: "sulmona", nome: "Sulmona", coords: [42.0469, 13.9261], descrizione: "Avamposto peligno e snodo della valle.", immagini: ["sfondoba.png"] },
+            { id: "pescasseroli", nome: "Pescasseroli", coords: [41.8089, 13.7842], descrizione: "Quartier generale nel Parco Nazionale d'Abruzzo.", immagini: ["sfondoba.png"] },
+            { id: "guardiagrele", nome: "Guardiagrele", coords: [42.1908, 14.2208], descrizione: "Terrazza d'Abruzzo a guardia della Maiella.", immagini: ["sfondoba.png"] },
+            { id: "sanleo", nome: "San Leo", coords: [43.8967, 12.3433], descrizione: "Fortezza inespugnabile su roccia calcarea.", immagini: ["sfondoba.png"] },
+            { id: "brisighella", nome: "Brisighella", coords: [44.2250, 11.7764], descrizione: "Borgo dei tre colli e torre dell'orologio.", immagini: ["sfondoba.png"] },
+            { id: "gradara", nome: "Gradara", coords: [43.9483, 12.7708], descrizione: "Castello fortificato di confine.", immagini: ["sfondoba.png"] },
+            { id: "sigonella", nome: "Sigonella", coords: [37.3997, 14.9150], descrizione: "Comando aeroportuale strategico nel profondo Sud.", immagini: ["sfondoba.png"] },
+            { id: "gaeta", nome: "Gaeta", coords: [41.2128, 13.5714], descrizione: "Piazzaforte marittima e storica roccaforte.", immagini: ["sfondoba.png"] },
+            { id: "sperlonga", nome: "Sperlonga", coords: [41.2583, 13.4358], descrizione: "Torre costiera di avvistamento.", immagini: ["sfondoba.png"] },
+            { id: "alberobello", nome: "Alberobello", coords: [40.7833, 17.2333], descrizione: "Accampamento mimetico di trulli conici.", immagini: ["sfondoba.png"] },
+            { id: "casteldelmonte", nome: "Castel del Monte", coords: [41.0847, 16.2708], descrizione: "Misteriosa fortezza ottagonale federiciana.", immagini: ["sfondoba.png"] },
+            { id: "trani", nome: "Trani", coords: [41.2783, 16.4150], descrizione: "Cattedrale sul mare e baluardo adriatico.", immagini: ["sfondoba.png"] },
+            { id: "matera", nome: "Matera", coords: [40.6667, 16.6000], descrizione: "La città dei Sassi, rifugio roccioso.", immagini: ["sfondoba.png"] },
+            { id: "peschici", nome: "Peschici", coords: [41.9442, 16.0125], descrizione: "Avamposto garganico a picco sul mare.", immagini: ["sfondoba.png"] },
+            { id: "amalfi", nome: "Amalfi", coords: [40.6333, 14.6028], descrizione: "Potenza marinara della costa verticale.", immagini: ["sfondoba.png"] },
+            { id: "atrani", nome: "Atrani", coords: [40.6378, 14.6111], descrizione: "Rifugio segreto della costiera.", immagini: ["sfondoba.png"] },
+            { id: "castellabate", nome: "Castellabate", coords: [40.2792, 14.9658], descrizione: "Castello dell'Abate a controllo del Cilento.", immagini: ["sfondoba.png"] },
+            { id: "maratea", nome: "Maratea", coords: [39.9986, 15.7119], descrizione: "Cristo Redentore e sentinella tirrenica.", immagini: ["sfondoba.png"] },
+            { id: "tropea", nome: "Tropea", coords: [38.6792, 15.8994], descrizione: "Santuario sullo scoglio e controllo costiero.", immagini: ["sfondoba.png"] },
+            { id: "gerace", nome: "Gerace", coords: [38.2708, 16.2208], descrizione: "Città rupestre dell'Aspromonte.", immagini: ["sfondoba.png"] },
+            { id: "pentedattilo", nome: "Pentedattilo", coords: [37.9556, 15.7725], descrizione: "Il borgo fantasma a forma di mano.", immagini: ["sfondoba.png"] },
+            { id: "erice", nome: "Erice", coords: [38.0389, 12.5858], descrizione: "Roccaforte sospesa sui venti di Sicilia.", immagini: ["sfondoba.png"] },
+            { id: "cefalu", nome: "Cefalù", coords: [38.0372, 14.0197], descrizione: "Duomo fortezza ai piedi della rocca.", immagini: ["sfondoba.png"] },
+            { id: "castelmola", nome: "Castelmola", coords: [37.8542, 15.2792], descrizione: "Nido d'aquila sopra Taormina.", immagini: ["sfondoba.png"] },
+            { id: "selinunte", nome: "Selinunte", coords: [37.5833, 12.8333], descrizione: "Avamposto archeologico tra i templi.", immagini: ["sfondoba.png"] },
+            { id: "orgosolo", nome: "Orgosolo", coords: [40.2231, 9.3514], descrizione: "Cuore fiero del Supramonte sardo.", immagini: ["sfondoba.png"] }
         ];
 
-        // Aggiunge i marker alla mappa
+        // Traccia lo stato utente
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+        });
+
+        // Genera i Marker e imposta la logica dei Popup
         regioni.forEach(regione => {
             let immaginiHtml = '';
             regione.immagini.forEach(img => {
                 immaginiHtml += `<img src="${img}" alt="Immagine ${regione.nome}" class="popup-img">`;
             });
 
-            const popupContent = `
-                <div>
-                    <div class="popup-title">${regione.nome}</div>
-                    <div class="popup-desc">${regione.descrizione}</div>
-                    <div class="popup-images">
-                        ${immaginiHtml}
-                    </div>
-                </div>
-            `;
+            const marker = L.marker(regione.coords).addTo(map);
 
-            L.marker(regione.coords).addTo(map)
-                .bindPopup(popupContent);
+            marker.on('click', () => {
+                let btnHtml = currentUser 
+                    ? `<button class="btn-mobilitati" onclick="mobilitatiIn('${regione.id}', '${regione.nome}')">🎯 Dislocati Qui</button>`
+                    : `<p style="font-size: 0.75em; color: #9ca3af; margin-top: 5px;">Accedi per mobilitarti in questo luogo.</p>`;
+
+                const popupHtml = `
+                    <div>
+                        <div class="popup-title">${regione.nome}</div>
+                        <div class="popup-desc">${regione.descrizione}</div>
+                        <div class="popup-images">${immaginiHtml}</div>
+                        
+                        <div class="mobilitazione-box">
+                            <div>Unità schierate: <span id="count-${regione.id}" class="units-badge">...</span></div>
+                            <div id="admin-list-${regione.id}"></div>
+                            ${btnHtml}
+                        </div>
+                    </div>
+                `;
+
+                marker.bindPopup(popupHtml).openPopup();
+
+                // Ascolto in tempo reale dei dati su Firestore
+                const q = query(collection(db, "mobilitazioni"), where("luogoId", "==", regione.id));
+                onSnapshot(q, (snapshot) => {
+                    const countElem = document.getElementById(`count-${regione.id}`);
+                    const adminElem = document.getElementById(`admin-list-${regione.id}`);
+                    
+                    if (countElem) countElem.textContent = snapshot.size;
+
+                    // Se l'utente loggato è Admin, mostra i nickname dei soldati presenti
+                    if (adminElem && currentUser && currentUser.uid === ADMIN_UID) {
+                        if (snapshot.empty) {
+                            adminElem.innerHTML = `<div class="admin-users-list">Nessun soldato schierato.</div>`;
+                        } else {
+                            let lista = "<strong>Soldati:</strong><br>";
+                            snapshot.forEach(docSnap => {
+                                lista += `• ${docSnap.data().nickname || "Anonimo"}<br>`;
+                            });
+                            adminElem.innerHTML = `<div class="admin-users-list">${lista}</div>`;
+                        }
+                    }
+                });
+            });
         });
+
+        // Funzione globale per la mobilitazione dell'utente nel luogo selezionato
+        window.mobilitatiIn = async function(luogoId, luogoNome) {
+            if (!currentUser) {
+                alert("Devi prima effettuare l'accesso per mobilitarti!");
+                return;
+            }
+
+            try {
+                await setDoc(doc(db, "mobilitazioni", currentUser.uid), {
+                    userId: currentUser.uid,
+                    nickname: currentUser.displayName || "Recluta",
+                    luogoId: luogoId,
+                    luogoNome: luogoNome,
+                    updatedAt: new Date()
+                });
+                alert(`Fatto! Ti sei dislocato a: ${luogoNome}`);
+            } catch (error) {
+                alert("Errore durante la mobilitazione: " + error.message);
+            }
+        };
     </script>
 </body>
 </html>
