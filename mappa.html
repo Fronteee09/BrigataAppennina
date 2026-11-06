@@ -252,13 +252,10 @@
                 }).addTo(map);
             });
 
-        // 70 Postazioni Strategiche (50 originarie + 20 nuove)
+        // 70 Postazioni Strategiche
         const regioni = [
-            // --- CAPITALE E SEDI PRINCIPALI ---
             { id: "scanno", nome: "Scanno (Capitale Sovrana) ★", coords: [41.9022, 13.8744], descrizione: "Sede del Governo Provvisorio della Brigata Appennina.", immagini: ["scannopaese.png", "stemmascanno.png"] },
             { id: "lazio", nome: "Lazio ★", coords: [41.9028, 12.4964], descrizione: "Presidio centrale per il controllo dei valichi appenninici.", immagini: ["laziobandiera.png"] },
-
-            // --- NORD E ALPI ---
             { id: "isera", nome: "Isera", coords: [45.8821, 11.0267], descrizione: "Avamposto montano alpino e riserva vitivinicola strategica.", immagini: ["sfondoba.png"] },
             { id: "milano", nome: "Milano", coords: [45.4642, 9.1900], descrizione: "Nodo logistico di comunicazione del Nord.", immagini: ["sfondoba.png"] },
             { id: "gorizia", nome: "Gorizia", coords: [45.9409, 13.6231], descrizione: "Sentinella di confine del Nord-Est.", immagini: ["sfondoba.png"] },
@@ -272,8 +269,6 @@
             { id: "arqua", nome: "Arquà Petrarca", coords: [45.2694, 11.7183], descrizione: "Presidio collinare sui Colli Euganei.", immagini: ["sfondoba.png"] },
             { id: "bobbio", nome: "Bobbio", coords: [44.7672, 9.3861], descrizione: "Ponte del Diavolo e nodo di passaggio.", immagini: ["sfondoba.png"] },
             { id: "triora", nome: "Triora", coords: [43.9933, 7.7656], descrizione: "Postazione arroccata tra le Alpi Liguri.", immagini: ["sfondoba.png"] },
-
-            // --- CENTRO E DORSALE APPENNINICA ---
             { id: "villalago", nome: "Villalago", coords: [41.9213, 13.8825], descrizione: "Presidio lacustre difensivo alle porte di Scanno.", immagini: ["sfondoba.png"] },
             { id: "civita", nome: "Civita di Bagnoregio", coords: [42.6275, 12.1136], descrizione: "Fortezza isolata nel tufo.", immagini: ["sfondoba.png"] },
             { id: "orvieto", nome: "Orvieto", coords: [42.7161, 12.1128], descrizione: "Roccaforte tufacea e baluardo umbro.", immagini: ["sfondoba.png"] },
@@ -289,8 +284,6 @@
             { id: "sanleo", nome: "San Leo", coords: [43.8967, 12.3433], descrizione: "Fortezza inespugnabile su roccia calcarea.", immagini: ["sfondoba.png"] },
             { id: "brisighella", nome: "Brisighella", coords: [44.2250, 11.7764], descrizione: "Borgo dei tre colli e torre dell'orologio.", immagini: ["sfondoba.png"] },
             { id: "gradara", nome: "Gradara", coords: [43.9483, 12.7708], descrizione: "Castello fortificato di confine.", immagini: ["sfondoba.png"] },
-
-            // --- SUD E ISOLE ---
             { id: "sigonella", nome: "Sigonella", coords: [37.3997, 14.9150], descrizione: "Comando aeroportuale strategico nel profondo Sud.", immagini: ["sfondoba.png"] },
             { id: "gaeta", nome: "Gaeta", coords: [41.2128, 13.5714], descrizione: "Piazzaforte marittima e storica roccaforte.", immagini: ["sfondoba.png"] },
             { id: "sperlonga", nome: "Sperlonga", coords: [41.2583, 13.4358], descrizione: "Torre costiera di avvistamento.", immagini: ["sfondoba.png"] },
@@ -311,8 +304,6 @@
             { id: "castelmola", nome: "Castelmola", coords: [37.8542, 15.2792], descrizione: "Nido d'aquila sopra Taormina.", immagini: ["sfondoba.png"] },
             { id: "selinunte", nome: "Selinunte", coords: [37.5833, 12.8333], descrizione: "Avamposto archeologico tra i templi.", immagini: ["sfondoba.png"] },
             { id: "orgosolo", nome: "Orgosolo", coords: [40.2231, 9.3514], descrizione: "Cuore fiero del Supramonte sardo.", immagini: ["sfondoba.png"] },
-
-            // --- 20 NUOVE LOCALITÀ STRATEGICHE AGGIUNTIVE ---
             { id: "susa", nome: "Susa", coords: [45.1383, 7.0461], descrizione: "Porta storica delle Alpi Cozie e nodo viario.", immagini: ["sfondoba.png"] },
             { id: "bardonecchia", nome: "Bardonecchia", coords: [45.0789, 6.7033], descrizione: "Valico ferroviario strategico occidentale.", immagini: ["sfondoba.png"] },
             { id: "como", nome: "Como", coords: [45.8081, 9.0852], descrizione: "Avamposto lacustre di confine settentrionale.", immagini: ["sfondoba.png"] },
@@ -349,27 +340,35 @@
 
             marker.on('click', () => {
                 let formMobilitazione = '';
+                
                 if (currentUser) {
-                    formMobilitazione = `
-                        <div style="margin-top: 8px; text-align: left;">
-                            <label style="font-size: 0.75em; color: #d1d5db;">Seleziona Reparto:</label>
-                            <select id="reparto-${regione.id}" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 5px;">
-                                <option value="Guardia Appennina">Guardia Appennina</option>
-                                <option value="Carabinieri Forestali">Comando Carabinieri Forestali</option>
-                                <option value="Esercito Fanteria">Esercito Fanteria</option>
-                                <option value="Guardia Costiera">Guardia Costiera</option>
-                                <option value="Intelligence">Intelligence</option>
-                                <option value="Antisommossa">Antisommossa</option>
-                                <option value="Forze Speciali">Forze Speciali</option>
-                            </select>
-                            <label style="font-size: 0.75em; color: #d1d5db;">Numero Unità:</label>
-                            <input type="number" id="num-unita-${regione.id}" value="1" min="1" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 6px;">
-                            <button class="btn-mobilitati" onclick="mobilitatiIn('${regione.id}', '${regione.nome}')">🎯 Schiera / Aggiorna Unità</button>
-                            <button class="btn-rimuovi" onclick="rimuoviUnita('${regione.id}')">🗑️ Ritira le mie Unità</button>
-                        </div>
-                    `;
+                    if (currentUser.uid === ADMIN_UID) {
+                        // Visibile solo a Fronte (Admin)
+                        formMobilitazione = `
+                            <div style="margin-top: 8px; text-align: left;">
+                                <label style="font-size: 0.75em; color: #00b359;">★ Pannello Comando (Admin):</label>
+                                <label style="font-size: 0.75em; color: #d1d5db;">Seleziona Reparto:</label>
+                                <select id="reparto-${regione.id}" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 5px;">
+                                    <option value="Guardia Appennina">Guardia Appennina</option>
+                                    <option value="Carabinieri Forestali">Comando Carabinieri Forestali</option>
+                                    <option value="Esercito Fanteria">Esercito Fanteria</option>
+                                    <option value="Guardia Costiera">Guardia Costiera</option>
+                                    <option value="Intelligence">Intelligence</option>
+                                    <option value="Antisommossa">Antisommossa</option>
+                                    <option value="Forze Speciali">Forze Speciali</option>
+                                </select>
+                                <label style="font-size: 0.75em; color: #d1d5db;">Numero Unità:</label>
+                                <input type="number" id="num-unita-${regione.id}" value="1" min="1" style="width: 100%; padding: 4px; background: rgba(0,0,0,0.6); color: #fff; border: 1px solid #008c45; border-radius: 4px; font-size: 0.8em; margin-bottom: 6px;">
+                                <button class="btn-mobilitati" onclick="mobilitatiIn('${regione.id}', '${regione.nome}')">🎯 Schiera / Aggiorna Unità</button>
+                                <button class="btn-rimuovi" onclick="rimuoviUnita('${regione.id}')">🗑️ Ritira Unità</button>
+                            </div>
+                        `;
+                    } else {
+                        // Per gli utenti normali (non Admin)
+                        formMobilitazione = `<p style="font-size: 0.75em; color: #9ca3af; margin-top: 5px;">Solo il Comando Supremo (Fronte) può dislocare truppe in questo settore.</p>`;
+                    }
                 } else {
-                    formMobilitazione = `<p style="font-size: 0.75em; color: #9ca3af; margin-top: 5px;">Accedi per mobilitarti in questo luogo.</p>`;
+                    formMobilitazione = `<p style="font-size: 0.75em; color: #9ca3af; margin-top: 5px;">Accedi per visualizzare i dettagli strategici.</p>`;
                 }
 
                 const popupHtml = `
@@ -459,10 +458,10 @@
             });
         });
 
-        // Funzione per schierare / aggiornare unità
+        // Funzione per schierare / aggiornare unità (Solo Admin)
         window.mobilitatiIn = async function(luogoId, luogoNome) {
-            if (!currentUser) {
-                alert("Devi prima effettuare l'accesso!");
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                alert("Accesso non autorizzato!");
                 return;
             }
 
@@ -477,7 +476,7 @@
             try {
                 await setDoc(doc(db, "mobilitazioni", currentUser.uid), {
                     userId: currentUser.uid,
-                    nickname: currentUser.displayName || "Recluta",
+                    nickname: currentUser.displayName || "Fronte ★",
                     luogoId: luogoId,
                     luogoNome: luogoNome,
                     reparto: reparto,
@@ -490,14 +489,14 @@
             }
         };
 
-        // Funzione per rimuovere/ritirare le proprie unità
+        // Funzione per rimuovere/ritirare le unità (Solo Admin)
         window.rimuoviUnita = async function(luogoId) {
-            if (!currentUser) {
-                alert("Devi prima effettuare l'accesso!");
+            if (!currentUser || currentUser.uid !== ADMIN_UID) {
+                alert("Accesso non autorizzato!");
                 return;
             }
 
-            if (!confirm("Confermi di voler ritirare le tue unità da questo settore?")) {
+            if (!confirm("Confermi di voler ritirare le unità da questo settore?")) {
                 return;
             }
 
