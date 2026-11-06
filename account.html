@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account - Brigata Appennina ★</title>
+    <link rel="icon" type="image/png" href="sfondoba.png">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ffffff;
+            background-color: #0b1a0e;
+            position: relative;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('sfondoba.png');
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px) opacity(0.3);
+            transform: scale(1.05);
+            z-index: -1;
+        }
+
+        .card-container {
+            background: rgba(15, 35, 20, 0.85);
+            border: 2px solid #008c45;
+            border-radius: 20px;
+            padding: 40px 30px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        h1 {
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+            color: #d1d5db;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #008c45;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-size: 1em;
+            outline: none;
+        }
+
+        input:focus {
+            border-color: #00b359;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .btn-primary {
+            background-color: #008c45;
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background-color: #00b359;
+        }
+
+        .btn-danger {
+            background-color: #cd212a;
+            color: white;
+        }
+
+        .toggle-text {
+            margin-top: 15px;
+            font-size: 0.85em;
+            color: #9ca3af;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        #user-info {
+            display: none;
+        }
+
+        .user-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-bottom: 15px;
+            border: 2px solid #008c45;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #d1d5db;
+            text-decoration: none;
+            font-size: 0.9em;
+        }
+
+        .back-link:hover {
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-image"></div>
+
+    <div class="card-container">
+        
+        <!-- FORM ACCESSO / REGISTRAZIONE -->
+        <div id="auth-container">
+            <h1 id="form-title">Accedi alla Brigata</h1>
+            
+            <div class="form-group">
+                <label for="username">Nickname Recluta</label>
+                <input type="text" id="username" placeholder="Garibaldi1861" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" placeholder="••••••••" required>
+            </div>
+
+            <button class="btn btn-primary" id="btn-auth">Accedi</button>
+
+            <p class="toggle-text" id="toggle-auth">Non hai un account? Registrati qui.</p>
+        </div>
+
+        <!-- SCHERMATA PROFILO UTENTE LOGGATO -->
+        <div id="user-info">
+            <h1>Profilo Recluta ★</h1>
+            <img id="user-photo" class="user-avatar" src="sfondoba.png" alt="Avatar">
+            <p style="font-size: 1.2em; margin-bottom: 20px;"><strong id="user-name">Nickname</strong></p>
+            
+            <button class="btn btn-danger" id="btn-logout">Disconnetti</button>
+        </div>
+
+        <a href="index.html" class="back-link">← Torna alla Home</a>
+    </div>
+
+    <!-- SDK Firebase JS v10 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            updateProfile,
+            signOut, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+        // Configurazione Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5qGXb79oKl2hlo2NuetFuJYQGJvUKggI",
+            authDomain: "brigataappennina.firebaseapp.com",
+            projectId: "brigataappennina",
+            storageBucket: "brigataappennina.firebasestorage.app",
+            messagingSenderId: "122974690609",
+            appId: "1:122974690609:web:8ab3b6c074e7200155a410",
+            measurementId: "G-2CNSSGXSYG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        let isLogin = true;
+
+        const authContainer = document.getElementById('auth-container');
+        const userInfo = document.getElementById('user-info');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const btnAuth = document.getElementById('btn-auth');
+        const btnLogout = document.getElementById('btn-logout');
+        const toggleAuth = document.getElementById('toggle-auth');
+        const formTitle = document.getElementById('form-title');
+
+        // Switch tra Login e Registrazione
+        toggleAuth.addEventListener('click', () => {
+            isLogin = !isLogin;
+            formTitle.textContent = isLogin ? "Accedi alla Brigata" : "Registra Nuova Recluta";
+            btnAuth.textContent = isLogin ? "Accedi" : "Registrati";
+            toggleAuth.textContent = isLogin ? "Non hai un account? Registrati qui." : "Hai già un account? Accedi.";
+        });
+
+        // Funzione per generare un'email interna basata sul nickname
+        function getInternalEmail(username) {
+            const cleanUser = username.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+            return `${cleanUser}@brigataappennina.local`;
+        }
+
+        // Login / Registrazione
+        btnAuth.addEventListener('click', async () => {
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value;
+
+            if (!username || !password) {
+                alert("Compila sia il Nickname che la Password!");
+                return;
+            }
+
+            const fakeEmail = getInternalEmail(username);
+
+            try {
+                if (isLogin) {
+                    await signInWithEmailAndPassword(auth, fakeEmail, password);
+                } else {
+                    const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, password);
+                    // Salva il nickname vero nel profilo Firebase
+                    await updateProfile(userCredential.user, {
+                        displayName: username
+                    });
+                    // Ricarica lo stato per aggiornare il nickname a schermo
+                    window.location.reload();
+                }
+            } catch (error) {
+                if (error.code === 'auth/email-already-in-use') {
+                    alert("Questo nickname è già stato preso da un'altra recluta!");
+                } else if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password') {
+                    alert("Nickname o password errati.");
+                } else if (error.code === 'auth/weak-password') {
+                    alert("La password deve contenere almeno 6 caratteri.");
+                } else {
+                    alert("Errore: " + error.message);
+                }
+            }
+        });
+
+        // Logout
+        btnLogout.addEventListener('click', () => signOut(auth));
+
+        // Ascolta lo stato dell'autenticazione
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                authContainer.style.display = 'none';
+                userInfo.style.display = 'block';
+                document.getElementById('user-name').textContent = user.displayName || usernameInput.value;
+            } else {
+                authContainer.style.display = 'block';
+                userInfo.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
