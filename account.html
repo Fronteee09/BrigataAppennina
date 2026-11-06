@@ -227,10 +227,11 @@
             toggleAuth.textContent = isLogin ? "Non hai un account? Registrati qui." : "Hai già un account? Accedi.";
         });
 
-        // Funzione per generare un'email interna basata sul nickname
+        // Generazione email interna valida per Firebase Auth
         function getInternalEmail(username) {
             const cleanUser = username.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
-            return `${cleanUser}@brigataappennina.local`;
+            const finalUser = cleanUser.length > 0 ? cleanUser : "user" + Date.now();
+            return `${finalUser}@brigataappennina.com`;
         }
 
         // Login / Registrazione
@@ -250,11 +251,9 @@
                     await signInWithEmailAndPassword(auth, fakeEmail, password);
                 } else {
                     const userCredential = await createUserWithEmailAndPassword(auth, fakeEmail, password);
-                    // Salva il nickname vero nel profilo Firebase
                     await updateProfile(userCredential.user, {
                         displayName: username
                     });
-                    // Ricarica lo stato per aggiornare il nickname a schermo
                     window.location.reload();
                 }
             } catch (error) {
@@ -273,7 +272,7 @@
         // Logout
         btnLogout.addEventListener('click', () => signOut(auth));
 
-        // Ascolta lo stato dell'autenticazione
+        // Stato Autenticazione
         onAuthStateChanged(auth, (user) => {
             if (user) {
                 authContainer.style.display = 'none';
