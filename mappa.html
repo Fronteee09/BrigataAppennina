@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mappa della Brigata - Brigata Appennina ★</title>
+    <link rel="icon" type="image/png" href="sfondoba.png">
+    
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #ffffff;
+            background-color: #0b1a0e;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('sfondoba.png');
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px) opacity(0.3);
+            transform: scale(1.05);
+            z-index: -1;
+        }
+
+        header {
+            background: rgba(15, 35, 20, 0.9);
+            border-bottom: 2px solid #008c45;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        header h1 {
+            font-size: 1.4em;
+            color: #ffffff;
+        }
+
+        .back-btn {
+            background-color: #008c45;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: #00b359;
+        }
+
+        #map {
+            flex: 1;
+            width: 100%;
+            z-index: 1;
+        }
+
+        /* Stile personalizzato per i Popup di Leaflet */
+        .leaflet-popup-content-wrapper {
+            background-color: rgba(15, 35, 20, 0.95);
+            color: #fff;
+            border-radius: 12px;
+            border: 2px solid #008c45;
+            backdrop-filter: blur(5px);
+            text-align: center;
+        }
+
+        .leaflet-popup-tip {
+            background-color: #008c45;
+        }
+
+        .popup-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #00b359;
+            margin-bottom: 8px;
+        }
+
+        .popup-desc {
+            font-size: 0.9em;
+            line-height: 1.4;
+            color: #d1d5db;
+            margin-bottom: 10px;
+        }
+
+        .popup-img {
+            width: 120px;
+            height: auto;
+            border-radius: 6px;
+            border: 1px solid #ffffff;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-image"></div>
+
+    <header>
+        <h1>🗺️ Mappa Strategica delle Regioni</h1>
+        <a href="index.html" class="back-btn">← Home</a>
+    </header>
+
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Inizializzazione della mappa centrata sull'Italia
+        const map = L.map('map', {
+            zoomControl: false
+        }).setView([42.5, 12.5], 6);
+
+        // Controllo dello zoom spostato in alto a destra per comodità mobile
+        L.control.zoom({ position: 'topright' }).addTo(map);
+
+        // Tile layer in stile scuro/neutro per adattarsi al tema
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 18,
+            attribution: '© OpenStreetMap contributors'
+        }).addTo(map);
+
+        // Dati delle regioni (puoi aggiungere le altre con lo stesso formato!)
+        const regioni = [
+            {
+                nome: "Lazio ★",
+                coords: [41.9028, 12.4964],
+                descrizione: "Cuore amministrativo e pontificio della nazione. Sede dei controlli doganali e dei meme romani.",
+                bandiera: "laziobandiera.png"
+            },
+            {
+                nome: "Abruzzo (Capitale: Scanno)",
+                coords: [42.1918, 13.4045],
+                descrizione: "La roccaforte appenninica ufficiale della Brigata tra cinghiali tattici e laghi a forma di cuore.",
+                bandiera: "sfondoba.png" // Puoi sostituire con l'immagine dedicata quando vuoi
+            }
+        ];
+
+        // Aggiunge i marker alla mappa con i relativi popup
+        regioni.forEach(regione => {
+            const popupContent = `
+                <div>
+                    <div class="popup-title">${regione.nome}</div>
+                    <div class="popup-desc">${regione.descrizione}</div>
+                    <img src="${regione.bandiera}" alt="Bandiera ${regione.nome}" class="popup-img">
+                </div>
+            `;
+
+            L.marker(regione.coords).addTo(map)
+                .bindPopup(popupContent);
+        });
+    </script>
+</body>
+</html>
