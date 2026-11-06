@@ -137,7 +137,6 @@
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Inizializzazione della mappa centrata sull'Italia
         const map = L.map('map', {
             zoomControl: false
         }).setView([42.5, 12.5], 6);
@@ -148,6 +147,20 @@
             maxZoom: 18,
             attribution: '© OpenStreetMap contributors'
         }).addTo(map);
+
+        // Caricamento dei confini dell'Italia e applicazione del colore verde semitrasparente
+        fetch('https://raw.githubusercontent.com/openpolis/geojson-italy/master/geojson/limits_IT_national.geojson')
+            .then(res => res.json())
+            .then(data => {
+                L.geoJSON(data, {
+                    style: {
+                        fillColor: '#008c45', // Verde Brigata
+                        fillOpacity: 0.35,     // Gradazione/Trasparenza del verde
+                        color: '#00b359',       // Bordo esterno verde brillante
+                        weight: 2
+                    }
+                }).addTo(map);
+            });
 
         // Elenco delle posizioni strategiche della Brigata
         const regioni = [
