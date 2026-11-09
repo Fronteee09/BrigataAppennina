@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pagine Ufficiali - Brigata Appennina ★</title>
+    <link rel="icon" type="image/png" href="sfondoba.png">
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #ffffff;
+            background-color: #0b1a0e;
+            position: relative;
+            padding: 20px;
+        }
+
+        .bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('sfondoba.png');
+            background-size: cover;
+            background-position: center;
+            filter: blur(8px) opacity(0.3);
+            transform: scale(1.05);
+            z-index: -1;
+        }
+
+        header {
+            background: rgba(15, 35, 20, 0.9);
+            border-bottom: 2px solid #008c45;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        header h1 {
+            font-size: 1.4em;
+            color: #ffffff;
+        }
+
+        .back-btn {
+            background-color: #008c45;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: background 0.2s;
+        }
+
+        .back-btn:hover {
+            background-color: #00b359;
+        }
+
+        .main-container {
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            flex: 1;
+        }
+
+        /* Barra di ricerca */
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 2px solid #008c45;
+            background: rgba(15, 35, 20, 0.9);
+            color: #fff;
+            font-size: 1em;
+            outline: none;
+            backdrop-filter: blur(5px);
+        }
+
+        .search-input:focus {
+            border-color: #00b359;
+        }
+
+        /* Form per creazione Pagine (Solo Admin) */
+        #admin-page-form {
+            background: rgba(15, 35, 20, 0.9);
+            border: 2px solid #cd212a;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
+
+        #admin-page-form h2 {
+            font-size: 1.2em;
+            color: #cd212a;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.85em;
+            color: #d1d5db;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #008c45;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: #fff;
+            font-size: 0.95em;
+            outline: none;
+        }
+
+        /* Textarea ridimensionabile */
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        input:focus, textarea:focus {
+            border-color: #00b359;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            border: none;
+            background-color: #008c45;
+            color: white;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background-color: #00b359;
+        }
+
+        /* Griglia delle Pagine */
+        .pages-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+
+        /* Scheda Pagina (Default Piccola) */
+        .page-card {
+            background: rgba(15, 35, 20, 0.85);
+            border: 2px solid #008c45;
+            border-radius: 15px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .page-card:hover {
+            transform: translateY(-3px);
+            border-color: #00b359;
+        }
+
+        .page-card-img {
+            width: 100%;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .page-card-title {
+            font-size: 1.1em;
+            color: #00b359;
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+        .page-card-preview {
+            font-size: 0.85em;
+            color: #d1d5db;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .btn-expand {
+            background: transparent;
+            border: 1px solid #008c45;
+            color: #ffffff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8em;
+            transition: all 0.2s;
+        }
+
+        .btn-expand:hover {
+            background: #008c45;
+        }
+
+        /* Modal per Ingrandimento Pagina */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: rgba(15, 35, 20, 0.95);
+            border: 2px solid #008c45;
+            border-radius: 20px;
+            max-width: 650px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 25px;
+            position: relative;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.8);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: #cd212a;
+            color: white;
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .modal-img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ffffff;
+        }
+
+        .modal-title {
+            font-size: 1.5em;
+            color: #00b359;
+            margin-bottom: 10px;
+        }
+
+        .modal-body {
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #e5e7eb;
+            white-space: pre-wrap;
+        }
+
+        .no-pages {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: #9ca3af;
+            font-style: italic;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="bg-image"></div>
+
+    <div class="main-container">
+        <header>
+            <h1>📄 Pagine Ufficiali</h1>
+            <a href="index.html" class="back-btn">← Home</a>
+        </header>
+
+        <!-- Barra di Ricerca -->
+        <div class="search-box">
+            <input type="text" id="search-input" class="search-input" placeholder="🔍 Cerca pagine per titolo o contenuto...">
+        </div>
+
+        <!-- FORM CREAZIONE PAGINE (Visibile solo a Fronte★) -->
+        <div id="admin-page-form">
+            <h2>★ Crea Nuova Pagina Ufficiale</h2>
+            <div class="form-group">
+                <label for="page-title">Titolo della Pagina</label>
+                <input type="text" id="page-title" placeholder="Es. Storia del Borgo di Scanno...">
+            </div>
+            <div class="form-group">
+                <label for="page-img">URL Immagine</label>
+                <input type="url" id="page-img" placeholder="https://esempio.com/immagine.png">
+            </div>
+            <div class="form-group">
+                <label for="page-body">Corpo della Pagina (Trascina l'angolo in basso a destra per ingrandire)</label>
+                <textarea id="page-body" rows="5" placeholder="Scrivi il contenuto completo della pagina..."></textarea>
+            </div>
+            <button class="btn" id="btn-pubblica-pagina">Pubblica Pagina</button>
+        </div>
+
+        <!-- GRIGLIA DELLE PAGINE -->
+        <div id="pages-container" class="pages-grid">
+            <p class="no-pages">Caricamento pagine in corso...</p>
+        </div>
+    </div>
+
+    <!-- MODAL PER VISUALIZZAZIONE INGRANDITA -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-content">
+            <button id="modal-close" class="modal-close">✕</button>
+            <img id="modal-img" class="modal-img" src="" alt="Immagine Pagina" style="display:none;">
+            <div id="modal-title" class="modal-title"></div>
+            <div id="modal-body" class="modal-body"></div>
+        </div>
+    </div>
+
+    <!-- SDK Firebase JS v10 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            addDoc, 
+            getDocs, 
+            query, 
+            orderBy, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5qGXb79oKl2hlo2NuetFuJYQGJvUKggI",
+            authDomain: "brigataappennina.firebaseapp.com",
+            projectId: "brigataappennina",
+            storageBucket: "brigataappennina.firebasestorage.app",
+            messagingSenderId: "122974690609",
+            appId: "1:122974690609:web:8ab3b6c074e7200155a410",
+            measurementId: "G-2CNSSGXSYG"
+        };
+
+        const ADMIN_UID = "IgYHEzKH62TIZXmsTeREuVB5UMe2"; // UID di Fronte★
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        const adminPageForm = document.getElementById('admin-page-form');
+        const pagesContainer = document.getElementById('pages-container');
+        const btnPubblicaPagina = document.getElementById('btn-pubblica-pagina');
+        const searchInput = document.getElementById('search-input');
+
+        const modalOverlay = document.getElementById('modal-overlay');
+        const modalClose = document.getElementById('modal-close');
+        const modalImg = document.getElementById('modal-img');
+        const modalTitle = document.getElementById('modal-title');
+        const modalBody = document.getElementById('modal-body');
+
+        let tutteLePagine = [];
+
+        // Controllo Permessi Admin
+        onAuthStateChanged(auth, (user) => {
+            if (user && user.uid === ADMIN_UID) {
+                adminPageForm.style.display = 'block';
+            } else {
+                adminPageForm.style.display = 'none';
+            }
+        });
+
+        // Pubblicazione Pagina
+        btnPubblicaPagina.addEventListener('click', async () => {
+            const titolo = document.getElementById('page-title').value.trim();
+            const immagine = document.getElementById('page-img').value.trim();
+            const corpo = document.getElementById('page-body').value.trim();
+
+            if (!titolo || !corpo) {
+                alert("Inserisci sia un titolo che il corpo della pagina!");
+                return;
+            }
+
+            try {
+                await addDoc(collection(db, "pagine"), {
+                    titolo: titolo,
+                    immagine: immagine || "",
+                    corpo: corpo,
+                    autore: auth.currentUser.displayName || "Fronte ★",
+                    timestamp: serverTimestamp()
+                });
+
+                alert("Pagina pubblicata con successo!");
+                document.getElementById('page-title').value = "";
+                document.getElementById('page-img').value = "";
+                document.getElementById('page-body').value = "";
+                
+                caricaPagine();
+            } catch (error) {
+                alert("Errore durante la pubblicazione: " + error.message);
+            }
+        });
+
+        // Caricamento Pagine da Firestore
+        async function caricaPagine() {
+            pagesContainer.innerHTML = '<p class="no-pages">Caricamento pagine in corso...</p>';
+            try {
+                const q = query(collection(db, "pagine"), orderBy("timestamp", "desc"));
+                const querySnapshot = await getDocs(q);
+
+                tutteLePagine = [];
+                querySnapshot.forEach((docSnap) => {
+                    tutteLePagine.push({ id: docSnap.id, ...docSnap.data() });
+                });
+
+                mostraPagine(tutteLePagine);
+            } catch (error) {
+                pagesContainer.innerHTML = '<p class="no-pages">Errore nel caricamento delle pagine.</p>';
+                console.error(error);
+            }
+        }
+
+        // Funzione per Renderizzare le Schede
+        function mostraPagine(lista) {
+            if (lista.length === 0) {
+                pagesContainer.innerHTML = '<p class="no-pages">Nessuna pagina trovata.</p>';
+                return;
+            }
+
+            pagesContainer.innerHTML = "";
+            lista.forEach((pagina) => {
+                const card = document.createElement('div');
+                card.className = 'page-card';
+
+                let imgHtml = pagina.immagine 
+                    ? `<img src="${escapeHtml(pagina.immagine)}" alt="Immagine Pagina" class="page-card-img" onerror="this.style.display='none'">` 
+                    : '';
+
+                card.innerHTML = `
+                    <div>
+                        ${imgHtml}
+                        <div class="page-card-title">${escapeHtml(pagina.titolo)}</div>
+                        <div class="page-card-preview">${escapeHtml(pagina.corpo)}</div>
+                    </div>
+                    <button class="btn-expand">🔍 Espandi Pagina</button>
+                `;
+
+                card.querySelector('.btn-expand').addEventListener('click', () => apriModal(pagina));
+                pagesContainer.appendChild(card);
+            });
+        }
+
+        // Ricerca dinamica
+        searchInput.addEventListener('input', (e) => {
+            const termine = e.target.value.toLowerCase().trim();
+            const filtrate = tutteLePagine.filter(p => 
+                (p.titolo && p.titolo.toLowerCase().includes(termine)) || 
+                (p.corpo && p.corpo.toLowerCase().includes(termine))
+            );
+            mostraPagine(filtrate);
+        });
+
+        // Modal Ingrandimento
+        function apriModal(pagina) {
+            modalTitle.textContent = pagina.titolo;
+            modalBody.textContent = pagina.corpo;
+            
+            if (pagina.immagine) {
+                modalImg.src = pagina.immagine;
+                modalImg.style.display = 'block';
+            } else {
+                modalImg.style.display = 'none';
+            }
+
+            modalOverlay.style.display = 'flex';
+        }
+
+        modalClose.addEventListener('click', () => {
+            modalOverlay.style.display = 'none';
+        });
+
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) modalOverlay.style.display = 'none';
+        });
+
+        function escapeHtml(text) {
+            if (!text) return "";
+            return text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+
+        caricaPagine();
+    </script>
+</body>
+</html>
